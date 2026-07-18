@@ -106,4 +106,24 @@ describe('blockNoteToMdx', () => {
     const blocks = [{ type: 'embed', props: { provider: 'arbitrary-iframe', url: 'https://evil.example.com' } }]
     expect(() => blockNoteToMdx(blocks)).toThrow(/not allowed/i)
   })
+
+  it('escapes a quote-breakout payload in the embed url rather than injecting raw markup', () => {
+    const payload = 'https://youtube.com/x" /><script>alert(1)</script><YouTubeEmbed url="'
+    const blocks = [{ type: 'embed', props: { provider: 'youtube', url: payload } }]
+    const result = blockNoteToMdx(blocks)
+    expect(result).not.toContain('<script>')
+    expect(result).not.toContain('"/>')
+    expect(result).toContain('&quot;')
+    expect(result).toMatch(/^<YouTubeEmbed url="[^"]*" \/>$/)
+  })
+
+  it('throws when a youtube-provider embed url does not point to a youtube hostname', () => {
+    const blocks = [{ type: 'embed', props: { provider: 'youtube', url: 'https://evil.example.com/video' } }]
+    expect(() => blockNoteToMdx(blocks)).toThrow(/hostname/i)
+  })
+
+  it('throws when a twitter-provider embed url does not point to a twitter/x hostname', () => {
+    const blocks = [{ type: 'embed', props: { provider: 'twitter', url: 'https://evil.example.com/status/1' } }]
+    expect(() => blockNoteToMdx(blocks)).toThrow(/hostname/i)
+  })
 })

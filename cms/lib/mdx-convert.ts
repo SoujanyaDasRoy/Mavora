@@ -28,6 +28,15 @@ interface TableContent {
 
 const ALLOWED_EMBED_PROVIDERS = new Set(['youtube', 'twitter'])
 
+const PROVIDER_HOSTNAMES: Record<string, Set<string>> = {
+  youtube: new Set(['youtube.com', 'www.youtube.com', 'youtu.be']),
+  twitter: new Set(['twitter.com', 'www.twitter.com', 'x.com', 'www.x.com']),
+}
+
+function escapeAttribute(value: string): string {
+  return value.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 function escapeMarkdown(text: string): string {
   return text.replace(/([*_`[\]])/g, '\\$1')
 }
@@ -63,8 +72,24 @@ function renderEmbed(props: Record<string, unknown> | undefined): string {
   if (!ALLOWED_EMBED_PROVIDERS.has(provider)) {
     throw new Error(`Embed provider "${provider}" is not allowed`)
   }
+
+  let parsedUrl: URL
+  try {
+    parsedUrl = new URL(url)
+  } catch {
+    throw new Error(`Embed url "${url}" is not a valid URL`)
+  }
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+    throw new Error(`Embed url "${url}" must use http or https`)
+  }
+
+  const allowedHostnames = PROVIDER_HOSTNAMES[provider]
+  if (!allowedHostnames.has(parsedUrl.hostname)) {
+    throw new Error(`Embed url "${url}" hostname does not match provider "${provider}"`)
+  }
+
   const componentName = provider === 'youtube' ? 'YouTubeEmbed' : 'TwitterEmbed'
-  return `<${componentName} url="${url}" />`
+  return `<${componentName} url="${escapeAttribute(url)}" />`
 }
 
 export function blockNoteToMdx(blocks: unknown[]): string {
