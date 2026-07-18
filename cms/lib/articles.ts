@@ -101,3 +101,7 @@ export async function updateArticle(
   if (!updated) throw new Error(`Article ${id} not found after update`)
   return updated
 }
+
+export async function deleteArticleRow(db: D1Database, id: string): Promise<void> {
+  await db.prepare('DELETE FROM articles WHERE id = ?').bind(id).run()
+}

@@ -4,7 +4,7 @@ import { env } from 'cloudflare:test'
 vi.mock('@clerk/nextjs/server', () => ({ auth: vi.fn() }))
 import { auth } from '@clerk/nextjs/server'
 import { createDraft } from '@/lib/articles'
-import { GET, PATCH } from './route'
+import { GET, PATCH, DELETE } from './route'
 
 beforeEach(async () => {
   await env.DB.prepare('DELETE FROM articles').run()
@@ -53,6 +53,28 @@ describe('PATCH /api/articles/[id]', () => {
       new Request('https://x', { method: 'PATCH', body: JSON.stringify({ title: 'Hijacked' }) }),
       { params: Promise.resolve({ id: article.id }) }
     )
+    expect(response.status).toBe(403)
+  })
+})
+
+describe('DELETE /api/articles/[id]', () => {
+  it('deletes the article when the caller is the author', async () => {
+    const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const response = await DELETE(new Request('https://x', { method: 'DELETE' }), {
+      params: Promise.resolve({ id: article.id }),
+    })
+    expect(response.status).toBe(204)
+  })
+
+  it('returns 403 when a different writer attempts to delete it', async () => {
+    const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
+    ;(auth as any).mockResolvedValue({ userId: 'w2' })
+
+    const response = await DELETE(new Request('https://x', { method: 'DELETE' }), {
+      params: Promise.resolve({ id: article.id }),
+    })
     expect(response.status).toBe(403)
   })
 })

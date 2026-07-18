@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { auth } from '@clerk/nextjs/server'
 import { getDb } from '@/lib/cloudflare'
 import { getWriter } from '@/lib/writers'
-import { getArticleById, updateArticle, type Article } from '@/lib/articles'
+import { getArticleById, updateArticle, deleteArticleRow, type Article } from '@/lib/articles'
 
 const patchSchema = z.object({
   title: z.string().min(1).optional(),
@@ -63,4 +63,16 @@ export async function PATCH(
 
   const updated = await updateArticle(result.db, id, parsed.data)
   return new Response(JSON.stringify(updated), { status: 200 })
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Response> {
+  const { id } = await params
+  const result = await authorizeAccess(id)
+  if ('error' in result) return result.error
+
+  await deleteArticleRow(result.db, id)
+  return new Response(null, { status: 204 })
 }

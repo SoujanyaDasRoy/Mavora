@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { env } from 'cloudflare:test'
-import { createDraft, getArticleById, listArticles, updateArticle, slugify } from './articles'
+import { createDraft, getArticleById, listArticles, updateArticle, deleteArticleRow, slugify } from './articles'
 
 beforeEach(async () => {
   await env.DB.prepare('DELETE FROM articles').run()
@@ -53,5 +53,13 @@ describe('updateArticle', () => {
     expect(updated.title).toBe('Updated Title')
     expect(updated.blocknoteContent).toBe('[{"type":"paragraph"}]')
     expect(updated.updatedAt).not.toBe(article.updatedAt)
+  })
+})
+
+describe('deleteArticleRow', () => {
+  it('removes the article row', async () => {
+    const article = await createDraft(env.DB, { title: 'To delete', pillar: 'ai', authorId: 'author_1' })
+    await deleteArticleRow(env.DB, article.id)
+    expect(await getArticleById(env.DB, article.id)).toBeNull()
   })
 })
