@@ -1,0 +1,21 @@
+name = "mavora-cms"
+main = ".open-next/worker.js"
+compatibility_date = "2026-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Adapted from the brief: @opennextjs/cloudflare 1.20.1 deploys the app as a
+# Cloudflare Worker (via `wrangler deploy`), not as a Cloudflare Pages
+# project. `main` and `[assets]` are required by the adapter's build output
+# and were not in the original brief, which assumed a Pages deploy.
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mavora-cms"
+database_id = "REPLACE_WITH_REAL_ID_AFTER_CREATE"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "mavora-cms-media"

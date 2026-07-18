@@ -1,0 +1,27 @@
+# Bindings-only Wrangler config used by Vitest (@cloudflare/vitest-pool-workers).
+#
+# Why this exists (adaptation from the brief): wrangler.toml's `main` field
+# (required for the real `wrangler deploy` / opennextjs-cloudflare Workers
+# deploy pipeline -- see wrangler.toml's own comment) points at
+# `.open-next/worker.js`, a build artifact that only exists after running
+# `opennextjs-cloudflare build`. When vitest-pool-workers reads a wrangler
+# config with a `main` set, it always tries to load that file as the test
+# runner's worker entrypoint, even for tests that only touch bindings (like
+# lib/cloudflare.test.ts) and never use `SELF`/`main`. That made `npm test`
+# depend on a full production build just to check the D1 schema.
+#
+# This file mirrors wrangler.toml's bindings with no `main`/`assets`, so
+# vitest-pool-workers runs in bindings-only mode -- no worker script needed.
+# Keep the binding names/values below in sync with wrangler.toml by hand.
+name = "mavora-cms"
+compatibility_date = "2026-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mavora-cms"
+database_id = "REPLACE_WITH_REAL_ID_AFTER_CREATE"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "mavora-cms-media"

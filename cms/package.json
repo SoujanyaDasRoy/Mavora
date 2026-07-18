@@ -1,0 +1,31 @@
+{
+  "name": "cms",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "cf-typegen": "wrangler types",
+    "prebuild": "npm run cf-typegen",
+    "build": "next build",
+    "pretest": "npm run cf-typegen",
+    "test": "vitest run",
+    "start": "next start",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:deploy": "opennextjs-cloudflare build && wrangler deploy"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.18.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.112.0"
+  }
+}
