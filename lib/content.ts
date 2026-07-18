@@ -32,6 +32,11 @@ function readPost(pillar: Pillar, fileName: string): Post {
   const raw = fs.readFileSync(fullPath, 'utf-8')
   const { data, content } = matter(raw)
   const frontmatter = frontmatterSchema.parse(data)
+  if (frontmatter.pillar !== pillar) {
+    throw new Error(
+      `Pillar mismatch in ${fullPath}: frontmatter.pillar is "${frontmatter.pillar}" but the file is located in the "${pillar}" directory. Move the file or fix its frontmatter so the two agree.`
+    )
+  }
   const slug = fileName.replace(/\.mdx$/, '')
   return { slug, pillar, frontmatter, content }
 }
