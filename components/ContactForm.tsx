@@ -2,6 +2,11 @@
 
 export function ContactForm() {
   const formId = process.env.NEXT_PUBLIC_FORMSPREE_ID
+  if (!formId) {
+    throw new Error(
+      'NEXT_PUBLIC_FORMSPREE_ID is not set. Set it in your environment (see .env.example) before running `npm run build` — otherwise the contact form would ship with a broken submission URL baked into the static HTML.'
+    )
+  }
   return (
     <form action={`https://formspree.io/f/${formId}`} method="POST">
       <label htmlFor="email">Email</label>
