@@ -44,4 +44,32 @@ describe('deleteContentFile', () => {
     const body = JSON.parse(deleteCall[1].body)
     expect(body.sha).toBe('abc123')
   })
+
+  it('treats a genuine 404 as "already absent" and no-ops without throwing (regression guard)', async () => {
+    ;(global.fetch as any).mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'Not Found', documentation_url: 'https://x' }), { status: 404 })
+    )
+
+    await expect(deleteContentFile('content/posts/ai/gone.mdx', 'unpublish: gone')).resolves.toBeUndefined()
+    // Only the GET happened; no DELETE should have been attempted.
+    expect((global.fetch as any).mock.calls.length).toBe(1)
+  })
+
+  it('throws instead of silently no-op-ing when GitHub returns a non-404 error (e.g. expired token)', async () => {
+    ;(global.fetch as any).mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'Bad credentials', documentation_url: 'https://x' }), { status: 401 })
+    )
+
+    await expect(deleteContentFile('content/posts/ai/my-post.mdx', 'unpublish: my-post')).rejects.toThrow()
+    // Must not have proceeded to attempt the DELETE with an undefined sha.
+    expect((global.fetch as any).mock.calls.length).toBe(1)
+  })
+
+  it('throws when GitHub rate-limits the existence check (403)', async () => {
+    ;(global.fetch as any).mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'API rate limit exceeded', documentation_url: 'https://x' }), { status: 403 })
+    )
+
+    await expect(deleteContentFile('content/posts/ai/my-post.mdx', 'unpublish: my-post')).rejects.toThrow()
+  })
 })

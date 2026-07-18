@@ -16,6 +16,16 @@ async function getExistingSha(path: string): Promise<string | undefined> {
     headers: authHeaders(),
   })
   if (response.status === 404) return undefined
+  if (!response.ok) {
+    // Any other non-2xx (401 expired/bad token, 403 rate-limited, 5xx
+    // outage) must NOT fall through to `data.json()` -- GitHub's error body
+    // shape (`{message, documentation_url}`) has no `sha` field, so that
+    // would silently return `undefined`, which callers (deleteContentFile)
+    // treat identically to "file genuinely doesn't exist." Throwing here
+    // instead makes commit/delete failures propagate instead of silently
+    // no-op-ing.
+    throw new Error(`GitHub existence check failed for ${path}: ${response.status}`)
+  }
   const data = (await response.json()) as { sha: string }
   return data.sha
 }
