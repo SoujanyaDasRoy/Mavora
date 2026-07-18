@@ -68,9 +68,11 @@ export async function PATCH(
   // duplicate left live on the public site. `slug` is immutable so this
   // can't happen via slug changes, but pillar has no such guard. Rather
   // than adding a schema column to track "the pillar last published under"
-  // just to support deleting the old path, we reject the change outright:
-  // the writer must unpublish (DELETE, which removes the live file) before
-  // moving an already-published article to a different pillar.
+  // just to support deleting the old path, we reject the change outright.
+  // There is no soft "unpublish": DELETE is the only way to clear the
+  // published state, and it hard-deletes the entire row (title, body,
+  // SEO fields, cover image -- everything, no recovery), so moving a
+  // published article to a different pillar requires deleting it first.
   if (
     result.article.status === 'published' &&
     parsed.data.pillar !== undefined &&
@@ -78,7 +80,8 @@ export async function PATCH(
   ) {
     return new Response(
       JSON.stringify({
-        error: 'Cannot change pillar on a published article: unpublish it first to avoid orphaning the old file.',
+        error:
+          'Cannot change pillar on a published article. There is no way to move it to a different pillar without deleting it first, which permanently removes all its content -- there is no undo. If you need to do this, save the article\'s content elsewhere before deleting.',
       }),
       { status: 400 }
     )

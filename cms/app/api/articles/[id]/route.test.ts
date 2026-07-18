@@ -87,6 +87,14 @@ describe('PATCH /api/articles/[id]', () => {
     )
     expect(response.status).toBe(400)
 
+    // The error message must not imply there's a safe/reversible "unpublish"
+    // toggle -- the only way to clear published status is DELETE, which
+    // hard-deletes the whole row with no undo. Assert on substance rather
+    // than an exact string so wording tweaks don't require a test update.
+    const body = (await response.json()) as any
+    expect(body.error.toLowerCase()).not.toContain('unpublish')
+    expect(body.error.toLowerCase()).toMatch(/no undo|permanent|no way to (undo|recover)/)
+
     // The pillar in the DB must be unchanged -- confirming the reject
     // happened before any write, not merely that the response was 400.
     const row = await env.DB.prepare('SELECT pillar FROM articles WHERE id = ?').bind(article.id).first()
