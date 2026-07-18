@@ -3,3 +3,10 @@
 # D1 (DB) and R2 (MEDIA_BUCKET) are configured as bindings in wrangler.toml, not
 # here -- this file is for secret values (API tokens, auth secrets, etc.) that
 # later tasks in the CMS build will introduce. No secrets are required by Task 1.
+
+# Clerk (Task 2) -- create a free Clerk application at https://dashboard.clerk.com
+# and copy its API keys here. Required for `next dev` to render <ClerkProvider>/
+# <SignIn> and for `clerkMiddleware()` in middleware.ts to resolve a key at all
+# (it throws if neither is set, even for unauthenticated/pass-through requests).
+CLERK_SECRET_KEY=sk_test_replace_me
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_replace_me
