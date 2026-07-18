@@ -1,6 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { env } from 'cloudflare:test'
-import { validateUpload, uploadToR2, recordMedia, MAX_IMAGE_BYTES, MAX_MEDIA_PER_ARTICLE } from './media'
+import {
+  validateUpload,
+  uploadToR2,
+  recordMedia,
+  deleteMediaObjects,
+  getPublicMediaUrl,
+  MAX_IMAGE_BYTES,
+  MAX_MEDIA_PER_ARTICLE,
+} from './media'
 
 beforeEach(async () => {
   await env.DB.prepare('DELETE FROM media').run()
@@ -46,5 +54,55 @@ describe('uploadToR2 / recordMedia', () => {
     const media = await recordMedia(env.DB, 'a1', 'articles/a1/cover.webp', 'A cover image')
     expect(media.r2Key).toBe('articles/a1/cover.webp')
     expect(media.altText).toBe('A cover image')
+  })
+})
+
+describe('deleteMediaObjects', () => {
+  it('deletes every R2 object recorded for the given article, and leaves other articles alone', async () => {
+    const bucket = env.MEDIA_BUCKET
+    await env.DB.prepare(
+      "INSERT INTO articles (id, title, slug, pillar, status, blocknote_content, author_id) VALUES ('a2', 'T2', 't2', 'ai', 'draft', '[]', 'w1')"
+    ).run()
+
+    await bucket.put('articles/a1/one.webp', new Uint8Array([1]))
+    await bucket.put('articles/a1/two.webp', new Uint8Array([1]))
+    await bucket.put('articles/a2/keep.webp', new Uint8Array([1]))
+    await recordMedia(env.DB, 'a1', 'articles/a1/one.webp', '')
+    await recordMedia(env.DB, 'a1', 'articles/a1/two.webp', '')
+    await recordMedia(env.DB, 'a2', 'articles/a2/keep.webp', '')
+
+    await deleteMediaObjects(bucket, env.DB, 'a1')
+
+    expect(await bucket.get('articles/a1/one.webp')).toBeNull()
+    expect(await bucket.get('articles/a1/two.webp')).toBeNull()
+    expect(await bucket.get('articles/a2/keep.webp')).not.toBeNull()
+  })
+
+  it('does nothing when the article has no media rows', async () => {
+    await expect(deleteMediaObjects(env.MEDIA_BUCKET, env.DB, 'a1')).resolves.toBeUndefined()
+  })
+})
+
+describe('getPublicMediaUrl', () => {
+  const originalBase = process.env.NEXT_PUBLIC_MEDIA_BASE_URL
+
+  afterEach(() => {
+    if (originalBase === undefined) delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL
+    else process.env.NEXT_PUBLIC_MEDIA_BASE_URL = originalBase
+  })
+
+  it('joins the configured base URL and the r2 key', () => {
+    process.env.NEXT_PUBLIC_MEDIA_BASE_URL = 'https://media.example.com'
+    expect(getPublicMediaUrl('articles/a1/cover.webp')).toBe('https://media.example.com/articles/a1/cover.webp')
+  })
+
+  it('tolerates a trailing slash on the configured base URL', () => {
+    process.env.NEXT_PUBLIC_MEDIA_BASE_URL = 'https://media.example.com/'
+    expect(getPublicMediaUrl('articles/a1/cover.webp')).toBe('https://media.example.com/articles/a1/cover.webp')
+  })
+
+  it('throws a clear error when the base URL is not configured', () => {
+    delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL
+    expect(() => getPublicMediaUrl('articles/a1/cover.webp')).toThrow(/NEXT_PUBLIC_MEDIA_BASE_URL/)
   })
 })

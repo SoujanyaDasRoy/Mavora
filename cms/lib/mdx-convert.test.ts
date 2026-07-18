@@ -37,10 +37,16 @@ describe('blockNoteToMdx', () => {
     const blocks = [
       {
         type: 'paragraph',
-        content: [{ type: 'link', href: 'https://example.com', content: [{ type: 'text', text: 'a link', styles: {} }] }],
+        content: [
+          {
+            type: 'link',
+            href: 'https://example.com/a-real-page',
+            content: [{ type: 'text', text: 'a link', styles: {} }],
+          },
+        ],
       },
     ]
-    expect(blockNoteToMdx(blocks)).toBe('[a link](https://example.com)')
+    expect(blockNoteToMdx(blocks)).toBe('[a link](https://example.com/a-real-page)')
   })
 
   it('converts a bullet list', () => {
@@ -72,6 +78,75 @@ describe('blockNoteToMdx', () => {
   it('escapes markdown-special characters in plain text so they render literally', () => {
     const blocks = [{ type: 'paragraph', content: [{ type: 'text', text: 'Use * and _ carefully', styles: {} }] }]
     expect(blockNoteToMdx(blocks)).toBe('Use \\* and \\_ carefully')
+  })
+
+  // Finding 1 (whole-branch review): plain paragraph text was the one path
+  // that reached the MDX compiler with zero protection against MDX/JSX
+  // syntax -- a writer could type `<iframe src="evil">` or `{fetch(...)}` in
+  // an ordinary paragraph (no "embed" block needed) and it would compile as
+  // live JSX/an evaluated expression on the public site, completely
+  // bypassing the embed allowlist below. These lock in the fix at the
+  // markdown-string level; mdx-render.test.ts proves the same payloads are
+  // inert once actually compiled and rendered through @mdx-js/mdx.
+  it('escapes MDX-significant characters (< > { } &) in plain text as numeric character references', () => {
+    const blocks = [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Use <script>alert(1)</script> and {1+1} and Q&A', styles: {} }] },
+    ]
+    expect(blockNoteToMdx(blocks)).toBe('Use &#60;script&#62;alert(1)&#60;/script&#62; and &#123;1+1&#125; and Q&#38;A')
+  })
+
+  it('does not double-escape the ampersand introduced by its own entity output', () => {
+    const blocks = [{ type: 'paragraph', content: [{ type: 'text', text: '<', styles: {} }] }]
+    expect(blockNoteToMdx(blocks)).toBe('&#60;')
+  })
+
+  it('rejects a link whose href is not http/https (e.g. javascript:)', () => {
+    const blocks = [
+      {
+        type: 'paragraph',
+        content: [{ type: 'link', href: 'javascript:alert(1)', content: [{ type: 'text', text: 'click me', styles: {} }] }],
+      },
+    ]
+    expect(() => blockNoteToMdx(blocks)).toThrow(/http/i)
+  })
+
+  it('rejects a link with a malformed href', () => {
+    const blocks = [
+      {
+        type: 'paragraph',
+        content: [{ type: 'link', href: 'not a url', content: [{ type: 'text', text: 'click me', styles: {} }] }],
+      },
+    ]
+    expect(() => blockNoteToMdx(blocks)).toThrow(/valid url/i)
+  })
+
+  it('percent-encodes parens in a link href so a stray ")" cannot terminate the link destination early', () => {
+    const payload = 'https://example.com/x)evil-trailer'
+    const blocks = [
+      { type: 'paragraph', content: [{ type: 'link', href: payload, content: [{ type: 'text', text: 'link', styles: {} }] }] },
+    ]
+    const result = blockNoteToMdx(blocks)
+    // The whole line must be a single, well-formed markdown link destination
+    // -- no raw, unescaped ')' inside it that would terminate the
+    // destination early and leave "evil-trailer)" dangling as sibling text.
+    expect(result).toMatch(/^\[link\]\([^)]*\)$/)
+    expect(result).toContain('%29')
+    expect(result).not.toContain(')evil-trailer')
+  })
+
+  it('still renders ordinary content with incidental <, >, {, } and a normal https link readably', () => {
+    const blocks = [
+      { type: 'paragraph', content: [{ type: 'text', text: 'a < b and c > d, plus {curly} notes', styles: {} }] },
+      {
+        type: 'paragraph',
+        content: [
+          { type: 'link', href: 'https://example.com/docs', content: [{ type: 'text', text: 'the docs', styles: {} }] },
+        ],
+      },
+    ]
+    const result = blockNoteToMdx(blocks)
+    expect(result).toContain('a &#60; b and c &#62; d, plus &#123;curly&#125; notes')
+    expect(result).toContain('[the docs](https://example.com/docs)')
   })
 
   it('converts a table to a Markdown table', () => {
@@ -125,5 +200,25 @@ describe('blockNoteToMdx', () => {
   it('throws when a twitter-provider embed url does not point to a twitter/x hostname', () => {
     const blocks = [{ type: 'embed', props: { provider: 'twitter', url: 'https://evil.example.com/status/1' } }]
     expect(() => blockNoteToMdx(blocks)).toThrow(/hostname/i)
+  })
+
+  // Finding 2 (whole-branch review): blockNoteToMdx had no `case 'image'`,
+  // so image blocks silently fell through to `default` and vanished from
+  // published content. `name` is BlockNote's file-name prop, which is also
+  // what BlockNote itself renders as the <img> alt attribute (see
+  // node_modules/@blocknote/core/src/blocks/Image/block.ts imageRender).
+  it('converts an image block to Markdown image syntax, using the file name as alt text', () => {
+    const blocks = [{ type: 'image', props: { url: 'https://media.example.com/articles/a1/cover.webp', name: 'cover shot' } }]
+    expect(blockNoteToMdx(blocks)).toBe('![cover shot](https://media.example.com/articles/a1/cover.webp)')
+  })
+
+  it('converts an image block with no name to empty alt text rather than throwing', () => {
+    const blocks = [{ type: 'image', props: { url: 'https://media.example.com/articles/a1/cover.webp' } }]
+    expect(blockNoteToMdx(blocks)).toBe('![](https://media.example.com/articles/a1/cover.webp)')
+  })
+
+  it('rejects an image block whose url is not http/https', () => {
+    const blocks = [{ type: 'image', props: { url: 'javascript:alert(1)', name: 'x' } }]
+    expect(() => blockNoteToMdx(blocks)).toThrow(/http/i)
   })
 })

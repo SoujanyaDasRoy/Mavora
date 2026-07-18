@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, type ChangeEvent } from 'react'
 import { useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { uploadMediaFile, getPublicMediaUrl } from '@/lib/media-client'
 
 // BlockNote touches `window` during editor initialization, so it can't be
 // server-rendered. Load it client-side only to avoid a prerender failure.
@@ -26,6 +27,13 @@ export default function EditArticlePage() {
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDescription, setSeoDescription] = useState('')
   const [publishStatus, setPublishStatus] = useState<'idle' | 'publishing' | 'published' | 'error'>('idle')
+  const [coverUploadStatus, setCoverUploadStatus] = useState<'idle' | 'uploading' | 'error'>('idle')
+  const [coverUploadError, setCoverUploadError] = useState<string | null>(null)
+  // Stable across renders (unlike an inline arrow function), so it's a safe
+  // identity for BlockEditor's getArticleId prop; the id itself is already
+  // always available on this page (unlike New Article, no lazy creation
+  // needed).
+  const getArticleId = useCallback(async () => id, [id])
 
   useEffect(() => {
     fetch(`/api/articles/${id}`)
@@ -64,6 +72,29 @@ export default function EditArticlePage() {
     setPublishStatus(response.ok ? 'published' : 'error')
   }
 
+  async function handleCoverImageChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCoverUploadStatus('uploading')
+    setCoverUploadError(null)
+    try {
+      const media = await uploadMediaFile(id, file, `Cover image for ${article?.title ?? 'Untitled'}`)
+      const publicUrl = getPublicMediaUrl(media.r2Key)
+      await fetch(`/api/articles/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coverImage: publicUrl }),
+      })
+      setArticle((prev) => (prev ? { ...prev, coverImage: publicUrl } : prev))
+      setCoverUploadStatus('idle')
+    } catch (error) {
+      setCoverUploadStatus('error')
+      setCoverUploadError(error instanceof Error ? error.message : 'Cover image upload failed.')
+    } finally {
+      e.target.value = ''
+    }
+  }
+
   if (!article) return <main>Loading...</main>
 
   return (
@@ -78,7 +109,27 @@ export default function EditArticlePage() {
         onChange={(e) => setSeoDescription(e.target.value)}
         onBlur={saveSeoFields}
       />
-      <BlockEditor initialContent={article.blocknoteContent} onChange={handleEditorChange} />
+
+      <div>
+        <label htmlFor="cover-image">Cover image</label>
+        <input
+          id="cover-image"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleCoverImageChange}
+          disabled={coverUploadStatus === 'uploading'}
+        />
+        {coverUploadStatus === 'uploading' && <p>Uploading cover image...</p>}
+        {coverUploadStatus === 'error' && <p role="alert">{coverUploadError}</p>}
+        {article.coverImage && (
+          // eslint-disable-next-line @next/next/no-img-element -- cover
+          // image lives on the public R2 domain, not a Next-optimizable
+          // local/static asset.
+          <img src={article.coverImage} alt="Cover preview" style={{ maxWidth: '200px' }} />
+        )}
+      </div>
+
+      <BlockEditor initialContent={article.blocknoteContent} onChange={handleEditorChange} getArticleId={getArticleId} />
       <button onClick={handlePublish} disabled={publishStatus === 'publishing'}>
         {article.status === 'published' ? 'Update published article' : 'Publish'}
       </button>

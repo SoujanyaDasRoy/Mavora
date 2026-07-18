@@ -44,3 +44,24 @@ CLOUDFLARE_ZONE_TAG=replace_me
 # https://cms.mavora.com) in Cloudflare's environment variables for the
 # deployed Worker.
 CMS_ORIGIN=http://localhost:3000
+
+# Public media base URL (whole-branch review, Finding 2) -- MEDIA_BUCKET (R2)
+# has no public HTTP access of its own; R2 objects are only reachable by URL
+# once the bucket is explicitly connected to a public domain. Uploaded
+# images' URLs (cover image and inline BlockNote images, see
+# lib/media-client.ts's getPublicMediaUrl) are built by joining this value
+# with the object's R2 key, and that same URL is what gets committed into
+# published MDX/frontmatter -- so it must be reachable by anyone browsing the
+# public site (a fully static export with no server of its own, per
+# DEPLOY.md), not just from inside the CMS.
+#
+# This is a manual, one-time Cloudflare-dashboard step, not something an
+# agent can generate: either enable the free `<bucket>.r2.dev` subdomain for
+# `mavora-cms-media` (Cloudflare dashboard -> R2 -> mavora-cms-media ->
+# Settings -> Public access), or bind a custom domain (e.g.
+# media.mavora.com) to the bucket. Set this to that resulting base URL, with
+# no trailing slash. Because this is a `NEXT_PUBLIC_` variable, Next.js
+# inlines it into the client bundle at BUILD time -- it must be set before
+# running `npm run build` / `opennextjs-cloudflare build`, not only as a
+# runtime Worker secret.
+NEXT_PUBLIC_MEDIA_BASE_URL=https://replace-me.r2.dev

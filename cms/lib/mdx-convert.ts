@@ -37,14 +37,67 @@ function escapeAttribute(value: string): string {
   return value.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+// Plain text rendered into MDX source has to be safe against TWO different
+// grammars at once: Markdown's own special characters (handled by the
+// trailing backslash-escape pass, unchanged from before) AND MDX's JSX/
+// expression syntax, which repurposes `<`, `>`, `{`, `}` as the start of a
+// live component/tag or a live JS expression -- backslash-escaping does NOT
+// neutralize those for MDX (`\<` is still tag-like to MDX's tokenizer), so
+// they need a different mechanism: HTML numeric character references
+// (`&#60;` etc). Verified empirically (see lib/mdx-convert.test.ts and
+// mdx-render.test.ts) that MDX/micromark only interprets literal `<` / `{`
+// characters encountered while tokenizing raw source; a numeric character
+// reference is invisible to that tokenizer (it's the five/six literal
+// characters `&`, `#`, digits, `;`) and only gets decoded to the real
+// character during final text-node rendering -- by which point structural
+// parsing has already finished, so the decoded `<script>` or `{1+1}` is
+// inert text, never a tag or an evaluated expression. `&` is escaped first
+// (before the other entities are introduced) so this function never
+// double-escapes its own output.
 function escapeMarkdown(text: string): string {
-  return text.replace(/([*_`[\]])/g, '\\$1')
+  return text
+    .replace(/&/g, '&#38;')
+    .replace(/</g, '&#60;')
+    .replace(/>/g, '&#62;')
+    .replace(/\{/g, '&#123;')
+    .replace(/\}/g, '&#125;')
+    .replace(/([*_`[\]])/g, '\\$1')
+}
+
+// Validates a user-supplied URL (link href or image src) the same way
+// renderEmbed validates embed URLs -- must parse as a well-formed absolute
+// URL and use http/https (rejects `javascript:`, `data:`, bare/relative
+// paths, etc). Unlike embed URLs, the destination isn't restricted to a
+// provider allowlist of hostnames, since links/images can point anywhere on
+// the web.
+//
+// After validation, `(` and `)` are percent-encoded in the *normalized*
+// URL. `new URL()` already percent-encodes whitespace and the characters
+// that are dangerous in an MDX/HTML context (`<`, `>`, `"`, `` ` ``,
+// verified empirically), but it leaves literal `(`/`)` untouched (they're
+// valid, unreserved-adjacent URL characters) -- and those are exactly the
+// characters that break out of Markdown's `[label](url)` destination
+// syntax (an unescaped/unbalanced `)` ends the link early). Percent-encoding
+// them is semantically lossless (a URL consumer decodes %28/%29 back to the
+// literal characters) and keeps the destination on a single line with no
+// unbalanced parens for the Markdown parser to trip over.
+function resolveLinkUrl(url: string): string {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    throw new Error(`URL "${url}" is not a valid URL`)
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(`URL "${url}" must use http or https`)
+  }
+  return parsed.href.replace(/\(/g, '%28').replace(/\)/g, '%29')
 }
 
 function renderInline(inline: Inline): string {
   if (inline.type === 'link') {
     const label = inline.content.map(renderInline).join('')
-    return `[${label}](${inline.href})`
+    return `[${label}](${resolveLinkUrl(inline.href)})`
   }
   if (inline.styles.code) return `\`${inline.text}\``
   let text = escapeMarkdown(inline.text)
@@ -133,6 +186,18 @@ export function blockNoteToMdx(blocks: unknown[]): string {
       case 'embed':
         lines.push(renderEmbed(raw.props))
         break
+      case 'image': {
+        // BlockNote's image block props (node_modules/@blocknote/core/src/blocks/Image/block.ts):
+        // `name` is the file name and is what BlockNote itself uses as the
+        // rendered <img>'s alt text (see imageRender/imageToExternalHTML in
+        // that file), so it's the closest thing to writer-supplied alt text
+        // this block type has -- `caption` is a distinct, visible caption
+        // *below* the image, not alt text, so it isn't used here.
+        const alt = escapeMarkdown(String(raw.props?.name ?? ''))
+        const url = resolveLinkUrl(String(raw.props?.url ?? ''))
+        lines.push(`![${alt}](${url})`)
+        break
+      }
       default:
         lines.push(renderInlineList(raw.content))
     }
