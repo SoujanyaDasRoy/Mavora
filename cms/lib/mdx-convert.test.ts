@@ -73,4 +73,37 @@ describe('blockNoteToMdx', () => {
     const blocks = [{ type: 'paragraph', content: [{ type: 'text', text: 'Use * and _ carefully', styles: {} }] }]
     expect(blockNoteToMdx(blocks)).toBe('Use \\* and \\_ carefully')
   })
+
+  it('converts a table to a Markdown table', () => {
+    const blocks = [
+      {
+        type: 'table',
+        content: {
+          rows: [
+            { cells: [[{ type: 'text', text: 'Name', styles: {} }], [{ type: 'text', text: 'Role', styles: {} }]] },
+            { cells: [[{ type: 'text', text: 'Ada', styles: {} }], [{ type: 'text', text: 'Admin', styles: {} }]] },
+          ],
+        },
+      },
+    ]
+    const result = blockNoteToMdx(blocks)
+    expect(result).toBe('| Name | Role |\n| --- | --- |\n| Ada | Admin |')
+  })
+
+  it('converts an allowlisted YouTube embed to a sandboxed iframe component', () => {
+    const blocks = [{ type: 'embed', props: { provider: 'youtube', url: 'https://youtube.com/watch?v=abc123' } }]
+    const result = blockNoteToMdx(blocks)
+    expect(result).toContain('<YouTubeEmbed url="https://youtube.com/watch?v=abc123" />')
+  })
+
+  it('converts an allowlisted Twitter embed', () => {
+    const blocks = [{ type: 'embed', props: { provider: 'twitter', url: 'https://twitter.com/user/status/123' } }]
+    const result = blockNoteToMdx(blocks)
+    expect(result).toContain('<TwitterEmbed url="https://twitter.com/user/status/123" />')
+  })
+
+  it('throws on a non-allowlisted embed provider rather than emitting raw HTML', () => {
+    const blocks = [{ type: 'embed', props: { provider: 'arbitrary-iframe', url: 'https://evil.example.com' } }]
+    expect(() => blockNoteToMdx(blocks)).toThrow(/not allowed/i)
+  })
 })

@@ -18,6 +18,16 @@ interface Block {
   content?: Inline[]
 }
 
+interface TableCell {
+  cells: Inline[][]
+}
+
+interface TableContent {
+  rows: TableCell[]
+}
+
+const ALLOWED_EMBED_PROVIDERS = new Set(['youtube', 'twitter'])
+
 function escapeMarkdown(text: string): string {
   return text.replace(/([*_`[\]])/g, '\\$1')
 }
@@ -36,6 +46,25 @@ function renderInline(inline: Inline): string {
 
 function renderInlineList(content: Inline[] | undefined): string {
   return (content ?? []).map(renderInline).join('')
+}
+
+function renderTable(content: TableContent): string {
+  const rows = content.rows.map((row) => row.cells.map((cell) => renderInlineList(cell)))
+  const [header, ...body] = rows
+  const headerLine = `| ${header.join(' | ')} |`
+  const separatorLine = `| ${header.map(() => '---').join(' | ')} |`
+  const bodyLines = body.map((row) => `| ${row.join(' | ')} |`)
+  return [headerLine, separatorLine, ...bodyLines].join('\n')
+}
+
+function renderEmbed(props: Record<string, unknown> | undefined): string {
+  const provider = String(props?.provider ?? '')
+  const url = String(props?.url ?? '')
+  if (!ALLOWED_EMBED_PROVIDERS.has(provider)) {
+    throw new Error(`Embed provider "${provider}" is not allowed`)
+  }
+  const componentName = provider === 'youtube' ? 'YouTubeEmbed' : 'TwitterEmbed'
+  return `<${componentName} url="${url}" />`
 }
 
 export function blockNoteToMdx(blocks: unknown[]): string {
@@ -72,6 +101,12 @@ export function blockNoteToMdx(blocks: unknown[]): string {
       }
       case 'quote':
         lines.push(`> ${renderInlineList(raw.content)}`)
+        break
+      case 'table':
+        lines.push(renderTable(raw.content as unknown as TableContent))
+        break
+      case 'embed':
+        lines.push(renderEmbed(raw.props))
         break
       default:
         lines.push(renderInlineList(raw.content))
