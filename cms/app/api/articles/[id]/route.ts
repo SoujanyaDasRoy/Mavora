@@ -62,6 +62,28 @@ export async function PATCH(
     return new Response(JSON.stringify({ error: parsed.error.flatten() }), { status: 400 })
   }
 
+  // Changing `pillar` on an already-published article would make the next
+  // publish commit to a NEW `content/posts/<newPillar>/<slug>.mdx` path
+  // without ever deleting the OLD path's file -- a permanent orphaned
+  // duplicate left live on the public site. `slug` is immutable so this
+  // can't happen via slug changes, but pillar has no such guard. Rather
+  // than adding a schema column to track "the pillar last published under"
+  // just to support deleting the old path, we reject the change outright:
+  // the writer must unpublish (DELETE, which removes the live file) before
+  // moving an already-published article to a different pillar.
+  if (
+    result.article.status === 'published' &&
+    parsed.data.pillar !== undefined &&
+    parsed.data.pillar !== result.article.pillar
+  ) {
+    return new Response(
+      JSON.stringify({
+        error: 'Cannot change pillar on a published article: unpublish it first to avoid orphaning the old file.',
+      }),
+      { status: 400 }
+    )
+  }
+
   const updated = await updateArticle(result.db, id, parsed.data)
   return new Response(JSON.stringify(updated), { status: 200 })
 }

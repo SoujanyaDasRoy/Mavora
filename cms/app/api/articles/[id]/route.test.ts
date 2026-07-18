@@ -62,6 +62,48 @@ describe('PATCH /api/articles/[id]', () => {
     )
     expect(response.status).toBe(403)
   })
+
+  it('allows changing pillar on a draft article', async () => {
+    const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const response = await PATCH(
+      new Request('https://x', { method: 'PATCH', body: JSON.stringify({ pillar: 'business' }) }),
+      { params: Promise.resolve({ id: article.id }) }
+    )
+    expect(response.status).toBe(200)
+    const body = await response.json() as any
+    expect(body.pillar).toBe('business')
+  })
+
+  it('rejects a pillar change on an already-published article with 400, to avoid orphaning the old MDX file at re-publish', async () => {
+    const article = await createDraft(env.DB, { title: 'Live', pillar: 'ai', authorId: 'w1' })
+    await env.DB.prepare("UPDATE articles SET status = 'published' WHERE id = ?").bind(article.id).run()
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const response = await PATCH(
+      new Request('https://x', { method: 'PATCH', body: JSON.stringify({ pillar: 'business' }) }),
+      { params: Promise.resolve({ id: article.id }) }
+    )
+    expect(response.status).toBe(400)
+
+    // The pillar in the DB must be unchanged -- confirming the reject
+    // happened before any write, not merely that the response was 400.
+    const row = await env.DB.prepare('SELECT pillar FROM articles WHERE id = ?').bind(article.id).first()
+    expect((row as any).pillar).toBe('ai')
+  })
+
+  it('allows a no-op PATCH (same pillar) on an already-published article', async () => {
+    const article = await createDraft(env.DB, { title: 'Live', pillar: 'ai', authorId: 'w1' })
+    await env.DB.prepare("UPDATE articles SET status = 'published' WHERE id = ?").bind(article.id).run()
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const response = await PATCH(
+      new Request('https://x', { method: 'PATCH', body: JSON.stringify({ pillar: 'ai', title: 'Live, updated' }) }),
+      { params: Promise.resolve({ id: article.id }) }
+    )
+    expect(response.status).toBe(200)
+  })
 })
 
 describe('DELETE /api/articles/[id]', () => {
