@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 
 // `clerkMiddleware()` resolves a publishable/secret key at call time and
@@ -33,8 +33,17 @@ type MiddlewareHandler = (
   event: unknown
 ) => Promise<unknown>
 
+// Real `NextRequest`s (which extend `Request`) always carry a `method` and
+// `headers`. These tests only exercise route matching -- the CSRF/Origin
+// check (`isTrustedOrigin`) has its own dedicated unit tests in
+// `lib/csrf.test.ts` -- so every mock request here is a same-origin GET,
+// which `isTrustedOrigin` always trusts regardless of Origin header.
 function makeRequest(pathname: string): NextRequest {
-  return { nextUrl: new URL(`https://cms.example.com${pathname}`) } as unknown as NextRequest
+  return {
+    nextUrl: new URL(`https://cms.example.com${pathname}`),
+    method: 'GET',
+    headers: new Headers(),
+  } as unknown as NextRequest
 }
 
 async function loadMiddleware(): Promise<MiddlewareHandler> {
@@ -109,4 +118,55 @@ describe('route protection middleware', () => {
       expect(protect).not.toHaveBeenCalled()
     }
   )
+})
+
+// Integration coverage for the wiring itself (middleware.ts calling
+// `isTrustedOrigin` and turning a `false` result into a 403 response) --
+// `isTrustedOrigin`'s own branch logic is unit-tested in `lib/csrf.test.ts`.
+describe('CSRF origin check in middleware', () => {
+  const originalCmsOrigin = process.env.CMS_ORIGIN
+
+  afterEach(() => {
+    if (originalCmsOrigin === undefined) {
+      delete process.env.CMS_ORIGIN
+    } else {
+      process.env.CMS_ORIGIN = originalCmsOrigin
+    }
+  })
+
+  function makeApiRequest(method: string, origin?: string): NextRequest {
+    const headers = new Headers()
+    if (origin) headers.set('Origin', origin)
+    return {
+      nextUrl: new URL('https://cms.example.com/api/articles'),
+      method,
+      headers,
+    } as unknown as NextRequest
+  }
+
+  it('returns 403 for a mutating API request from an untrusted origin', async () => {
+    process.env.CMS_ORIGIN = 'https://cms.example.com'
+    const { auth } = makeAuth()
+    const middleware = await loadMiddleware()
+    const response = await middleware(auth, makeApiRequest('POST', 'https://evil.example.com'), {})
+    expect(response).toBeInstanceOf(Response)
+    expect((response as Response).status).toBe(403)
+  })
+
+  it('returns 403 for a mutating API request with no Origin header', async () => {
+    process.env.CMS_ORIGIN = 'https://cms.example.com'
+    const { auth } = makeAuth()
+    const middleware = await loadMiddleware()
+    const response = await middleware(auth, makeApiRequest('POST'), {})
+    expect(response).toBeInstanceOf(Response)
+    expect((response as Response).status).toBe(403)
+  })
+
+  it('does not return a 403 for a mutating API request whose Origin matches CMS_ORIGIN', async () => {
+    process.env.CMS_ORIGIN = 'https://cms.example.com'
+    const { auth } = makeAuth()
+    const middleware = await loadMiddleware()
+    const response = await middleware(auth, makeApiRequest('POST', 'https://cms.example.com'), {})
+    expect(response).toBeUndefined()
+  })
 })

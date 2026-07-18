@@ -5,6 +5,7 @@ import { getArticleById } from '@/lib/articles'
 import { blockNoteToMdx } from '@/lib/mdx-convert'
 import { buildFrontmatter } from '@/lib/frontmatter'
 import { commitContentFile } from '@/lib/github'
+import { recordAuditEvent } from '@/lib/audit'
 
 export async function POST(
   _request: Request,
@@ -41,6 +42,8 @@ export async function POST(
     .prepare("UPDATE articles SET status = 'published', published_at = COALESCE(published_at, datetime('now')) WHERE id = ?")
     .bind(id)
     .run()
+
+  await recordAuditEvent(db, { actorId: userId, action: 'publish', articleId: id })
 
   return new Response(JSON.stringify({ published: true, path }), { status: 200 })
 }

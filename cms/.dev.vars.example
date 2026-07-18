@@ -36,3 +36,11 @@ BUTTONDOWN_API_KEY=replace_me
 # dashboard. Both are manual, one-time human steps.
 CLOUDFLARE_ANALYTICS_API_TOKEN=replace_me
 CLOUDFLARE_ZONE_TAG=replace_me
+
+# CSRF origin check (Task 16) -- middleware.ts rejects mutating (non-GET/HEAD/
+# OPTIONS) requests to /api/* whose `Origin` header doesn't exactly match this
+# value. Set to the CMS app's own origin: http://localhost:3000 for local
+# `next dev`, and the real production origin (e.g.
+# https://cms.mavora.com) in Cloudflare's environment variables for the
+# deployed Worker.
+CMS_ORIGIN=http://localhost:3000

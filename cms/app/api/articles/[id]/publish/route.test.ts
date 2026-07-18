@@ -38,6 +38,12 @@ describe('POST /api/articles/[id]/publish', () => {
     const updated = await getArticleById(env.DB, article.id)
     expect(updated?.status).toBe('published')
     expect(updated?.publishedAt).not.toBeNull()
+
+    const auditRow = await env.DB.prepare('SELECT * FROM audit_log WHERE article_id = ?')
+      .bind(article.id)
+      .first()
+    expect(auditRow?.actor_id).toBe('w1')
+    expect(auditRow?.action).toBe('publish')
   })
 
   it('returns 400 when seoDescription is missing', async () => {

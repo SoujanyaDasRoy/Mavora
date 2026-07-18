@@ -4,6 +4,7 @@ import { getDb } from '@/lib/cloudflare'
 import { getWriter } from '@/lib/writers'
 import { getArticleById, updateArticle, deleteArticleRow, type Article } from '@/lib/articles'
 import { deleteContentFile } from '@/lib/github'
+import { recordAuditEvent } from '@/lib/audit'
 
 const patchSchema = z.object({
   title: z.string().min(1).optional(),
@@ -105,5 +106,6 @@ export async function DELETE(
   }
 
   await deleteArticleRow(result.db, id)
+  await recordAuditEvent(result.db, { actorId: result.userId, action: 'delete', articleId: id })
   return new Response(null, { status: 204 })
 }

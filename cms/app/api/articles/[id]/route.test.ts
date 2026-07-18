@@ -123,6 +123,12 @@ describe('DELETE /api/articles/[id]', () => {
       params: Promise.resolve({ id: article.id }),
     })
     expect(response.status).toBe(204)
+
+    const auditRow = await env.DB.prepare('SELECT * FROM audit_log WHERE article_id = ?')
+      .bind(article.id)
+      .first()
+    expect(auditRow?.actor_id).toBe('w1')
+    expect(auditRow?.action).toBe('delete')
   })
 
   it('returns 403 when a different writer attempts to delete it', async () => {
