@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { getDb } from '@/lib/cloudflare'
 import { getWriter } from '@/lib/writers'
 import { getArticleById, updateArticle, deleteArticleRow, type Article } from '@/lib/articles'
+import { deleteContentFile } from '@/lib/github'
 
 const patchSchema = z.object({
   title: z.string().min(1).optional(),
@@ -19,7 +20,7 @@ const patchSchema = z.object({
 // to `Response | undefined` at call sites using `'error' in result`.
 async function authorizeAccess(
   id: string
-): Promise<{ error: Response } | { db: D1Database; article: Article }> {
+): Promise<{ error: Response } | { db: D1Database; article: Article; userId: string }> {
   const { userId } = await auth()
   if (!userId) return { error: new Response('Unauthorized', { status: 401 }) } as const
 
@@ -34,7 +35,7 @@ async function authorizeAccess(
     return { error: new Response('Forbidden', { status: 403 }) } as const
   }
 
-  return { db, article } as const
+  return { db, article, userId } as const
 }
 
 export async function GET(
@@ -72,6 +73,11 @@ export async function DELETE(
   const { id } = await params
   const result = await authorizeAccess(id)
   if ('error' in result) return result.error
+
+  if (result.article.status === 'published') {
+    const path = `content/posts/${result.article.pillar}/${result.article.slug}.mdx`
+    await deleteContentFile(path, `unpublish: ${result.article.slug}`)
+  }
 
   await deleteArticleRow(result.db, id)
   return new Response(null, { status: 204 })

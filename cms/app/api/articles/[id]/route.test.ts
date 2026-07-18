@@ -2,11 +2,18 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { env } from 'cloudflare:test'
 
 vi.mock('@clerk/nextjs/server', () => ({ auth: vi.fn() }))
+vi.mock('@/lib/github', () => ({
+  commitContentFile: vi.fn().mockResolvedValue(undefined),
+  deleteContentFile: vi.fn().mockResolvedValue(undefined),
+}))
+
 import { auth } from '@clerk/nextjs/server'
+import { deleteContentFile } from '@/lib/github'
 import { createDraft } from '@/lib/articles'
 import { GET, PATCH, DELETE } from './route'
 
 beforeEach(async () => {
+  vi.clearAllMocks()
   await env.DB.prepare('DELETE FROM articles').run()
   await env.DB.prepare('DELETE FROM writers').run()
   await env.DB.prepare("INSERT INTO writers (id, role, display_name) VALUES ('w1', 'writer', 'W1')").run()
@@ -76,5 +83,28 @@ describe('DELETE /api/articles/[id]', () => {
       params: Promise.resolve({ id: article.id }),
     })
     expect(response.status).toBe(403)
+  })
+
+  it('removes the git file when deleting a published article', async () => {
+    const article = await createDraft(env.DB, { title: 'Published', pillar: 'ai', authorId: 'w1' })
+    await env.DB.prepare("UPDATE articles SET status = 'published' WHERE id = ?").bind(article.id).run()
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const response = await DELETE(new Request('https://x', { method: 'DELETE' }), {
+      params: Promise.resolve({ id: article.id }),
+    })
+    expect(response.status).toBe(204)
+    expect(deleteContentFile).toHaveBeenCalledWith('content/posts/ai/published.mdx', expect.stringContaining('published'))
+  })
+
+  it('does not touch git when deleting a draft article', async () => {
+    const article = await createDraft(env.DB, { title: 'Still a draft', pillar: 'ai', authorId: 'w1' })
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const response = await DELETE(new Request('https://x', { method: 'DELETE' }), {
+      params: Promise.resolve({ id: article.id }),
+    })
+    expect(response.status).toBe(204)
+    expect(deleteContentFile).not.toHaveBeenCalled()
   })
 })
