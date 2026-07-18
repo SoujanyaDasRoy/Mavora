@@ -8,6 +8,7 @@ const isProtectedRoute = createRouteMatcher([
   '/api/media(.*)',
   '/api/writers(.*)',
   '/api/stats(.*)',
+  '/api/cron(.*)',
 ])
 
 const isApiRoute = createRouteMatcher(['/api(.*)'])

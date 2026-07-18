@@ -16,7 +16,17 @@ beforeEach(async () => {
 })
 
 describe('GET /api/cron/cleanup-media', () => {
-  it('deletes an R2 object with no matching media row and keeps one that has a row', async () => {
+  // The route calls `cleanupOrphanedMedia` with no `gracePeriodMs` override,
+  // so it runs with the real production default (~15 minutes -- see
+  // lib/media-cleanup.ts's `DEFAULT_GRACE_PERIOD_MS`). An object created
+  // moments ago by this test's own `bucket.put()` is therefore well within
+  // the grace period and must survive even though it has no matching `media`
+  // row -- this is the TOCTOU-race protection (Task 17) working end-to-end
+  // through the real route, not a gap in coverage. The millisecond-scale
+  // "old orphan actually gets deleted" case is covered at the unit level in
+  // lib/media-cleanup.test.ts, which overrides `gracePeriodMs` to avoid a
+  // real 15-minute sleep in the test suite.
+  it('keeps a just-uploaded object with no matching media row (grace period) and keeps one that has a row', async () => {
     const bucket = env.MEDIA_BUCKET
     await bucket.put('articles/orphan/no-row.webp', new Uint8Array([1]))
     await bucket.put('articles/kept/has-row.webp', new Uint8Array([1]))
@@ -32,9 +42,9 @@ describe('GET /api/cron/cleanup-media', () => {
     const response = await GET()
     expect(response.status).toBe(200)
     const body = (await response.json()) as { deleted: number }
-    expect(body.deleted).toBe(1)
+    expect(body.deleted).toBe(0)
 
-    expect(await bucket.get('articles/orphan/no-row.webp')).toBeNull()
+    expect(await bucket.get('articles/orphan/no-row.webp')).not.toBeNull()
     expect(await bucket.get('articles/kept/has-row.webp')).not.toBeNull()
   })
 })

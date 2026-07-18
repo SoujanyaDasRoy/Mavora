@@ -102,6 +102,8 @@ describe('route protection middleware', () => {
     '/api/media',
     '/api/writers',
     '/api/stats',
+    '/api/cron',
+    '/api/cron/cleanup-media',
   ])('calls auth.protect() for protected route %s', async (pathname) => {
     const { protect, auth } = makeAuth()
     const middleware = await loadMiddleware()
