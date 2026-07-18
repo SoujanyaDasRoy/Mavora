@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import { auth } from '@clerk/nextjs/server'
-import { getDb } from '@/lib/cloudflare'
+import { getDb, getMediaBucket } from '@/lib/cloudflare'
 import { getWriter } from '@/lib/writers'
 import { getArticleById, updateArticle, deleteArticleRow, type Article } from '@/lib/articles'
 import { deleteContentFile } from '@/lib/github'
+import { deleteMediaObjects } from '@/lib/media'
 import { recordAuditEvent } from '@/lib/audit'
 
 const patchSchema = z.object({
@@ -111,6 +112,14 @@ export async function DELETE(
     const path = `content/posts/${result.article.pillar}/${result.article.slug}.mdx`
     await deleteContentFile(path, `unpublish: ${result.article.slug}`)
   }
+
+  // Must run BEFORE deleteArticleRow: `media.article_id REFERENCES
+  // articles(id) ON DELETE CASCADE` means the `media` rows this reads
+  // disappear the instant the article row is deleted, so the R2 keys have
+  // to be looked up first or they're unrecoverable (previously they were
+  // never cleaned up at all here -- only the weekly orphan cron eventually
+  // caught them, up to a week later).
+  await deleteMediaObjects(getMediaBucket(), result.db, id)
 
   await deleteArticleRow(result.db, id)
 

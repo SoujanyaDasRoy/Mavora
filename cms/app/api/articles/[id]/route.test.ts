@@ -186,6 +186,38 @@ describe('DELETE /api/articles/[id]', () => {
     expect(deleteContentFile).not.toHaveBeenCalled()
   })
 
+  it('deletes the article\'s R2 media objects, leaving other articles\' media untouched', async () => {
+    const article = await createDraft(env.DB, { title: 'Has media', pillar: 'ai', authorId: 'w1' })
+    const other = await createDraft(env.DB, { title: 'Other', pillar: 'ai', authorId: 'w1' })
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const bucket = env.MEDIA_BUCKET
+    const key1 = `articles/${article.id}/one.webp`
+    const key2 = `articles/${article.id}/two.webp`
+    const keptKey = `articles/${other.id}/kept.webp`
+    await bucket.put(key1, new Uint8Array([1]))
+    await bucket.put(key2, new Uint8Array([1]))
+    await bucket.put(keptKey, new Uint8Array([1]))
+    await env.DB.prepare("INSERT INTO media (id, article_id, r2_key, alt_text) VALUES ('m1', ?, ?, '')")
+      .bind(article.id, key1)
+      .run()
+    await env.DB.prepare("INSERT INTO media (id, article_id, r2_key, alt_text) VALUES ('m2', ?, ?, '')")
+      .bind(article.id, key2)
+      .run()
+    await env.DB.prepare("INSERT INTO media (id, article_id, r2_key, alt_text) VALUES ('m3', ?, ?, '')")
+      .bind(other.id, keptKey)
+      .run()
+
+    const response = await DELETE(new Request('https://x', { method: 'DELETE' }), {
+      params: Promise.resolve({ id: article.id }),
+    })
+    expect(response.status).toBe(204)
+
+    expect(await bucket.get(key1)).toBeNull()
+    expect(await bucket.get(key2)).toBeNull()
+    expect(await bucket.get(keptKey)).not.toBeNull()
+  })
+
   it('still returns 204 when recordAuditEvent fails', async () => {
     const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
     ;(auth as any).mockResolvedValue({ userId: 'w1' })
