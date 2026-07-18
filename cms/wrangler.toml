@@ -1,5 +1,15 @@
 name = "mavora-cms"
-main = ".open-next/worker.js"
+# Adapted from Task 17's brief: `main` points at workers/scheduled-entry.js
+# instead of `.open-next/worker.js` directly. `.open-next/worker.js` (the
+# adapter's build output) only exports a `fetch` handler, and Cloudflare
+# Cron Triggers invoke a `scheduled` handler, which the adapter doesn't
+# generate (checked node_modules/@opennextjs/cloudflare 1.20.1 -- no
+# `scheduled` support in its templates or config API as of this version).
+# workers/scheduled-entry.js wraps the generated worker, re-exporting its
+# `fetch` unchanged and adding the `scheduled` handler that runs the weekly
+# R2 orphan cleanup (app/api/cron/cleanup-media's underlying logic). See
+# that file's header comment for the full reasoning.
+main = "workers/scheduled-entry.js"
 compatibility_date = "2026-07-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -19,3 +29,10 @@ database_id = "REPLACE_WITH_REAL_ID_AFTER_CREATE"
 [[r2_buckets]]
 binding = "MEDIA_BUCKET"
 bucket_name = "mavora-cms-media"
+
+# Weekly R2 orphan cleanup (Task 17). Fires Monday 03:00 UTC -- a low-traffic
+# window, well clear of any request load -- and invokes the `scheduled`
+# handler in workers/scheduled-entry.js (see `main` above), not an HTTP
+# route: Cron Triggers don't produce an HTTP request for Next.js to route.
+[triggers]
+crons = ["0 3 * * 1"]
