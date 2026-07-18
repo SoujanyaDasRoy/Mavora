@@ -9,6 +9,8 @@ interface Stats {
   publishedCount: number
   r2UsedBytes: number
   r2FreeTierBytes: number
+  subscriberCount: number | null
+  pageViews30d: number | null
 }
 
 export default function DashboardPage() {

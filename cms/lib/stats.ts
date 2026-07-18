@@ -29,3 +29,52 @@ export async function getR2UsedBytes(
 
   return total
 }
+
+/**
+ * Fetches the current newsletter subscriber count from Buttondown. Returns
+ * `null` (never throws) when `BUTTONDOWN_API_KEY` is unset, the request
+ * fails, or the response is a non-2xx status, so a Buttondown outage doesn't
+ * take down the whole Dashboard.
+ */
+export async function getSubscriberCount(): Promise<number | null> {
+  const apiKey = process.env.BUTTONDOWN_API_KEY
+  if (!apiKey) return null
+  try {
+    const response = await fetch('https://api.buttondown.com/v1/subscribers?type=regular', {
+      headers: { Authorization: `Token ${apiKey}` },
+    })
+    if (!response.ok) return null
+    const data = (await response.json()) as { count: number }
+    return data.count
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Fetches the total page views over the last 30 days from Cloudflare Web
+ * Analytics via the GraphQL Analytics API. Returns `null` (never throws)
+ * when the required env vars are unset, the request fails, or the response
+ * is a non-2xx status, so a Cloudflare Analytics outage doesn't take down
+ * the whole Dashboard.
+ */
+export async function getPageViews30d(): Promise<number | null> {
+  const token = process.env.CLOUDFLARE_ANALYTICS_API_TOKEN
+  const zoneTag = process.env.CLOUDFLARE_ZONE_TAG
+  if (!token || !zoneTag) return null
+  try {
+    const response = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `query { viewer { zones(filter: { zoneTag: "${zoneTag}" }) { httpRequests1dGroups(limit: 30) { sum { pageViews } } } } }`,
+      }),
+    })
+    if (!response.ok) return null
+    const data = (await response.json()) as any
+    const groups = data?.data?.viewer?.zones?.[0]?.httpRequests1dGroups ?? []
+    return groups.reduce((sum: number, g: any) => sum + (g.sum?.pageViews ?? 0), 0)
+  } catch {
+    return null
+  }
+}
