@@ -4,7 +4,7 @@ import { getDb, getMediaBucket } from '@/lib/cloudflare'
 import { getWriter } from '@/lib/writers'
 import { getArticleById, updateArticle, deleteArticleRow, type Article } from '@/lib/articles'
 import { deleteContentFile } from '@/lib/github'
-import { deleteMediaObjects } from '@/lib/media'
+import { deleteMediaObjects, deleteMediaObjectByKey, r2KeyFromPublicUrl } from '@/lib/media'
 import { recordAuditEvent } from '@/lib/audit'
 
 const patchSchema = z.object({
@@ -90,6 +90,30 @@ export async function PATCH(
   }
 
   const updated = await updateArticle(result.db, id, parsed.data)
+
+  // A cover image replacement uploads a brand-new `media` row via
+  // POST /api/media/upload and then PATCHes `coverImage` to point at it,
+  // but never removes the PREVIOUS cover's row/R2 object -- left unchecked,
+  // a writer trying a few different covers permanently eats into
+  // MAX_MEDIA_PER_ARTICLE (lib/media.ts) with media nothing still
+  // references, eventually blocking all further uploads for the article.
+  // This runs AFTER updateArticle succeeds (using `result.article`'s
+  // pre-update coverImage, captured before the write) so a failed update
+  // never leaves the article pointing at an already-deleted cover.
+  if (
+    parsed.data.coverImage !== undefined &&
+    result.article.coverImage &&
+    result.article.coverImage !== parsed.data.coverImage
+  ) {
+    const oldKey = r2KeyFromPublicUrl(result.article.coverImage)
+    if (oldKey) {
+      try {
+        await deleteMediaObjectByKey(getMediaBucket(), result.db, id, oldKey)
+      } catch (error) {
+        console.error('Failed to delete replaced cover image media', error)
+      }
+    }
+  }
 
   try {
     await recordAuditEvent(result.db, { actorId: result.userId, action: 'update', articleId: id })

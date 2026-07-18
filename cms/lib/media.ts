@@ -67,6 +67,46 @@ export async function deleteMediaObjects(
   }
 }
 
+// Inverse of getPublicMediaUrl: given the full public URL stored in an
+// article's `coverImage` column, recovers the `r2_key` that produced it, so
+// the OLD cover's specific `media` row can be found and cleaned up when a
+// writer replaces the cover with a new upload (see
+// app/api/articles/[id]/route.ts's PATCH handler and
+// deleteMediaObjectByKey below). Returns null rather than throwing when the
+// URL doesn't match the currently configured base -- e.g. NEXT_PUBLIC_MEDIA_BASE_URL
+// isn't set, or the stored URL predates a base-URL change -- so callers can
+// simply skip cleanup instead of risking deleting the wrong object.
+export function r2KeyFromPublicUrl(url: string): string | null {
+  const base = process.env.NEXT_PUBLIC_MEDIA_BASE_URL
+  if (!base) return null
+  const prefix = `${base.replace(/\/+$/, '')}/`
+  if (!url.startsWith(prefix)) return null
+  return url.slice(prefix.length)
+}
+
+// Deletes a single article's media row (and its backing R2 object) by
+// article + r2Key. Used when a cover image is replaced, to remove the OLD
+// cover instead of leaving it as an orphaned row that permanently consumes
+// one of the article's MAX_MEDIA_PER_ARTICLE slots (see
+// app/api/articles/[id]/route.ts's PATCH handler). No-op if no matching row
+// exists -- distinct from deleteMediaObjects, which deletes ALL of an
+// article's media rows/objects (used on article deletion), not one specific
+// row by key.
+export async function deleteMediaObjectByKey(
+  bucket: R2Bucket,
+  db: D1Database,
+  articleId: string,
+  r2Key: string
+): Promise<void> {
+  const row = await db
+    .prepare('SELECT id FROM media WHERE article_id = ? AND r2_key = ?')
+    .bind(articleId, r2Key)
+    .first<{ id: string }>()
+  if (!row) return
+  await bucket.delete(r2Key)
+  await db.prepare('DELETE FROM media WHERE id = ?').bind(row.id).run()
+}
+
 // The R2 bucket backing MEDIA_BUCKET has no public HTTP access of its own --
 // R2 objects aren't reachable by URL unless the bucket is explicitly
 // connected to a public domain (Cloudflare's free `<bucket>.r2.dev`

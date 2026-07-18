@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { env } from 'cloudflare:test'
 
 vi.mock('@clerk/nextjs/server', () => ({ auth: vi.fn() }))
@@ -116,6 +116,84 @@ describe('PATCH /api/articles/[id]', () => {
       { params: Promise.resolve({ id: article.id }) }
     )
     expect(response.status).toBe(200)
+  })
+
+  // Fix round 2, Finding 2: replacing a cover image previously left the OLD
+  // cover's `media` row/R2 object orphaned forever (only the weekly cleanup
+  // cron would eventually catch it), permanently eating into
+  // MAX_MEDIA_PER_ARTICLE (lib/media.ts) with media nothing references
+  // anymore. PATCHing `coverImage` to a new value must now delete the
+  // PREVIOUS cover's row and R2 object.
+  describe('cover image replacement cleanup', () => {
+    const originalBase = process.env.NEXT_PUBLIC_MEDIA_BASE_URL
+
+    beforeEach(() => {
+      process.env.NEXT_PUBLIC_MEDIA_BASE_URL = 'https://media.example.com'
+    })
+
+    afterEach(async () => {
+      if (originalBase === undefined) delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL
+      else process.env.NEXT_PUBLIC_MEDIA_BASE_URL = originalBase
+      await env.DB.prepare('DELETE FROM media').run()
+    })
+
+    async function patchCoverImage(articleId: string, r2Key: string) {
+      const bucket = env.MEDIA_BUCKET
+      await bucket.put(r2Key, new Uint8Array([1]))
+      await env.DB.prepare("INSERT INTO media (id, article_id, r2_key, alt_text) VALUES (?, ?, ?, '')")
+        .bind(crypto.randomUUID(), articleId, r2Key)
+        .run()
+      const publicUrl = `https://media.example.com/${r2Key}`
+      const response = await PATCH(
+        new Request('https://x', { method: 'PATCH', body: JSON.stringify({ coverImage: publicUrl }) }),
+        { params: Promise.resolve({ id: articleId }) }
+      )
+      expect(response.status).toBe(200)
+      return { r2Key, publicUrl }
+    }
+
+    it('deletes the OLD cover R2 object and media row when a new cover replaces it, keeping the new one intact', async () => {
+      const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
+      ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+      const first = await patchCoverImage(article.id, `articles/${article.id}/cover-1.webp`)
+      const second = await patchCoverImage(article.id, `articles/${article.id}/cover-2.webp`)
+
+      const bucket = env.MEDIA_BUCKET
+      expect(await bucket.get(first.r2Key)).toBeNull()
+      expect(await bucket.get(second.r2Key)).not.toBeNull()
+
+      const rows = (
+        await env.DB.prepare('SELECT r2_key FROM media WHERE article_id = ?').bind(article.id).all()
+      ).results as { r2_key: string }[]
+      expect(rows.map((r) => r.r2_key)).toEqual([second.r2Key])
+    })
+
+    it('does not grow the media count unboundedly across repeated cover replacements', async () => {
+      const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
+      ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+      await patchCoverImage(article.id, `articles/${article.id}/cover-1.webp`)
+      await patchCoverImage(article.id, `articles/${article.id}/cover-2.webp`)
+      await patchCoverImage(article.id, `articles/${article.id}/cover-3.webp`)
+
+      const count = await env.DB.prepare('SELECT COUNT(*) as c FROM media WHERE article_id = ?')
+        .bind(article.id)
+        .first<{ c: number }>()
+      expect(count?.c).toBe(1)
+    })
+
+    it('does nothing when the article had no previous cover image', async () => {
+      const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
+      ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+      await patchCoverImage(article.id, `articles/${article.id}/cover-1.webp`)
+
+      const count = await env.DB.prepare('SELECT COUNT(*) as c FROM media WHERE article_id = ?')
+        .bind(article.id)
+        .first<{ c: number }>()
+      expect(count?.c).toBe(1)
+    })
   })
 
   it('records an audit event on update', async () => {
