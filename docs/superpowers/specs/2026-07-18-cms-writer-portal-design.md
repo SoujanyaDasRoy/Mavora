@@ -110,7 +110,7 @@ Clerk's hosted/embedded sign-in component. No custom auth UI to build or secure.
 - Admin only: "Invite writer" action (email input → Clerk invitation API call)
 
 ### 3. Manage Articles (`/articles`)
-Table of articles (filtered to the writer's own unless admin), columns: title, pillar, status badge, last updated, actions (edit, delete). Delete removes the D1 row (cascading to `media`) and the corresponding R2 objects; if the article was published, also removes the MDX file from git via the GitHub API so the public site stops serving it on next deploy.
+Table of articles (filtered to the writer's own unless admin), columns: title, pillar, status badge, last updated, actions (edit, delete). Delete removes the D1 row (cascading to `media`) and the corresponding R2 objects; if the article was published, also removes the MDX file from git via the GitHub API, which triggers the same Cloudflare Pages auto-deploy already described in the Publish Flow — the public site drops the article on that rebuild.
 
 ### 4. New Article (`/articles/new`)
 BlockNote editor, pillar selector, cover image upload (client-side compressed before upload, per Media & Storage Budget), SEO fields, Publish button (flow above).
