@@ -4,9 +4,11 @@ This site is a static Next.js export (`npm run build` produces a static `out/`
 directory). Cloudflare Pages builds and hosts it directly from the GitHub
 repo — there is no server to manage.
 
-The repo is already pushed to GitHub at
-`https://github.com/SoujanyaDasRoy/Mavora.git` on the `main` branch. Everything
-below happens in the Cloudflare dashboard and only needs to be done once.
+This repo's GitHub remote is
+`https://github.com/SoujanyaDasRoy/Mavora.git`, with `main` as the production
+branch. If it hasn't been pushed there yet, push it first — Cloudflare Pages
+connects directly to that repo/branch. Everything below happens in the
+Cloudflare dashboard and only needs to be done once.
 
 ## 1. Create the Cloudflare Pages project
 
