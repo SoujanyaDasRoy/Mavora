@@ -7,7 +7,7 @@ describe('sitemap', () => {
     const entries = sitemap()
     const posts = getAllPosts()
     for (const post of posts) {
-      const url = `https://mavora.example.com/${post.pillar}/${post.slug}`
+      const url = `https://mavora.example.com/${post.pillar}/${post.slug}/`
       expect(entries.some((e) => e.url === url)).toBe(true)
     }
   })

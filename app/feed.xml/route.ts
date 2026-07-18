@@ -10,7 +10,7 @@ export function GET() {
       (post) => `
     <item>
       <title>${post.frontmatter.title}</title>
-      <link>${SITE_URL}/${post.pillar}/${post.slug}</link>
+      <link>${SITE_URL}/${post.pillar}/${post.slug}/</link>
       <description>${post.frontmatter.description}</description>
       <pubDate>${new Date(post.frontmatter.publishedAt).toUTCString()}</pubDate>
     </item>`
@@ -20,7 +20,7 @@ export function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
   <title>Mavora</title>
-  <link>${SITE_URL}</link>
+  <link>${SITE_URL}/</link>
   <description>Technology, AI, productivity and business, explained practically.</description>
   ${items}
 </channel></rss>`
