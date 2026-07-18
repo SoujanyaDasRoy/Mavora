@@ -26,6 +26,17 @@ export default defineConfig({
     // living in the Workers project below.
     projects: [
       {
+        // `@/*` mirrors tsconfig.json's path alias (-> project root) so
+        // route files can import via `@/lib/...` exactly as they do under
+        // Next.js. Vite doesn't read tsconfig `paths` on its own, so it's
+        // re-declared here -- and it must live on this project object (not
+        // the shared root config above), since Vitest v4's `test.projects`
+        // entries are each resolved as their own independent Vite config.
+        resolve: {
+          alias: {
+            '@': dirname,
+          },
+        },
         // Reads migrations/*.sql on the Node side (the Workers runtime has
         // no filesystem access) and hands them to vitest-setup.ts via the
         // TEST_MIGRATIONS binding, which applies them to the per-run D1
@@ -44,7 +55,7 @@ export default defineConfig({
         ],
         test: {
           name: 'workers',
-          include: ['lib/**/*.test.ts'],
+          include: ['lib/**/*.test.ts', 'app/**/*.test.ts'],
           setupFiles: ['./vitest-setup.ts'],
         },
       },
