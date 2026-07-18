@@ -110,6 +110,49 @@ describe('blockNoteToMdx output compiled through the real MDX pipeline', () => {
     expect(html).toContain('<img src="https://media.example.com/cover.webp" alt="a cover photo"')
   })
 
+  // Fix round 2, Finding 1: code-styled text was rendered as `` `${text}` ``
+  // with no escaping. A backtick inside code-styled text closed the span
+  // early, letting the remainder of the text -- here a literal <script>
+  // tag -- reach the compiler as raw, unprotected MDX source instead of
+  // inert code-span content. This is the exact exploit payload from the
+  // review finding, run through the real @mdx-js/mdx compile pipeline.
+  it('renders code-styled text containing a backtick as inert code-span text, not a live <script> element', async () => {
+    const blocks = [
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'x`<script>alert(1)</script>', styles: { code: true } }],
+      },
+    ]
+    const mdx = blockNoteToMdx(blocks)
+    const html = await renderMdx(mdx)
+
+    expect(html).not.toMatch(/<script[\s>]/)
+    // The whole payload, including the writer's own backtick, must survive
+    // as literal displayed text inside a single <code> element.
+    expect(html).toContain('<code>')
+    expect(html).toMatch(/<code>x`&lt;script&gt;alert\(1\)&lt;\/script&gt;<\/code>/)
+  })
+
+  it('renders normal code-styled text without backticks unchanged, as a real <code> element', async () => {
+    const blocks = [
+      { type: 'paragraph', content: [{ type: 'text', text: 'const x = 1', styles: { code: true } }] },
+    ]
+    const mdx = blockNoteToMdx(blocks)
+    const html = await renderMdx(mdx)
+
+    expect(html).toContain('<code>const x = 1</code>')
+  })
+
+  it('renders code-styled text that is itself a backtick-quoted word visibly, not stripped or mangled', async () => {
+    const blocks = [
+      { type: 'paragraph', content: [{ type: 'text', text: '`backtick`', styles: { code: true } }] },
+    ]
+    const mdx = blockNoteToMdx(blocks)
+    const html = await renderMdx(mdx)
+
+    expect(html).toContain('<code>`backtick`</code>')
+  })
+
   it('renders ordinary legitimate content (headings, bold, incidental <, >, {, } and a link) readably', async () => {
     const blocks = [
       { type: 'heading', props: { level: 2 }, content: [{ type: 'text', text: 'Comparing A vs B', styles: {} }] },

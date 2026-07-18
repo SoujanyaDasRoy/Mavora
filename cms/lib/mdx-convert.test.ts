@@ -221,4 +221,42 @@ describe('blockNoteToMdx', () => {
     const blocks = [{ type: 'image', props: { url: 'javascript:alert(1)', name: 'x' } }]
     expect(() => blockNoteToMdx(blocks)).toThrow(/http/i)
   })
+
+  // Fix round 2, Finding 1: code-styled text was wrapped in a single fixed
+  // backtick with zero escaping (`\`${inline.text}\``), so a backtick
+  // anywhere in writer-supplied "code" text closed the span early and let
+  // everything after it -- including a literal <script> tag -- reach the
+  // MDX compiler as live, unprotected source. The fix picks a backtick
+  // fence longer than any backtick run already in the text (the standard
+  // CommonMark technique, mirroring mdast-util-to-markdown's own inline-code
+  // handler) instead of escaping the content, since code spans are expected
+  // to render byte-for-byte. mdx-render.test.ts proves the payload below is
+  // actually inert once compiled through the real MDX pipeline.
+  it('uses a longer backtick fence when code-styled text itself contains a backtick, instead of a single fixed backtick', () => {
+    const blocks = [
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'x`<script>alert(1)</script>', styles: { code: true } }],
+      },
+    ]
+    const result = blockNoteToMdx(blocks)
+    // A single backtick fence would read as "`x`" (closing at the writer's
+    // backtick) followed by raw "<script>alert(1)</script>`" -- live MDX
+    // source outside any code span. The fix must produce a fence longer
+    // than the one backtick run in the content so the whole thing stays a
+    // single code span.
+    expect(result).toBe('``x`<script>alert(1)</script>``')
+  })
+
+  it('does not change plain (non-backtick) code-styled text from the existing single-backtick fence', () => {
+    const blocks = [{ type: 'paragraph', content: [{ type: 'text', text: 'const x = 1', styles: { code: true } }] }]
+    expect(blockNoteToMdx(blocks)).toBe('`const x = 1`')
+  })
+
+  it('renders code-styled text that is itself a backtick-quoted word, padding with spaces per the standard code-span convention', () => {
+    // A writer documenting backtick usage might mark the literal text
+    // `backtick` (including its own surrounding backticks) as code.
+    const blocks = [{ type: 'paragraph', content: [{ type: 'text', text: '`backtick`', styles: { code: true } }] }]
+    expect(blockNoteToMdx(blocks)).toBe('`` `backtick` ``')
+  })
 })

@@ -94,12 +94,55 @@ function resolveLinkUrl(url: string): string {
   return parsed.href.replace(/\(/g, '%28').replace(/\)/g, '%29')
 }
 
+// Code-styled text renders as a Markdown inline code span. Unlike plain
+// text it must NOT go through escapeMarkdown: a code span is expected to
+// display its content byte-for-byte (a writer who types `<div>` as code
+// wants to see the literal characters `<div>`, not `&lt;div&gt;`), and
+// CommonMark's own code-span grammar is what's supposed to keep that
+// content inert to MDX/HTML -- remark parses everything between the
+// backtick fences as one opaque text node, never re-tokenizing `<`, `{`,
+// etc. inside it.
+//
+// That protection only holds if the fence's backticks can't be broken out
+// of by a backtick the writer put IN the content. A single fixed backtick
+// (the previous implementation) fails exactly that: content containing a
+// backtick closes the span early, and everything after it is parsed as raw
+// MDX/JSX again (verified: `x\`<script>alert(1)</script>` as code-styled
+// text compiled a live <script> element).
+//
+// The fix -- and the actual CommonMark/GFM-correct way to emit a code span
+// for arbitrary content -- is to pick a fence made of MORE consecutive
+// backticks than any backtick-run already present in the text, so the
+// content can never contain a run that matches the fence length. This
+// mirrors mdast-util-to-markdown's own inline-code handler
+// (node_modules/mdast-util-to-markdown/lib/handle/inline-code.js), which is
+// the real serializer remark/MDX's own ecosystem uses for this; including
+// its rule to pad with a single space on each side when the content starts
+// or ends with a backtick (or is bounded by whitespace), which stops that
+// edge backtick from visually fusing with the fence.
+function renderCodeSpan(text: string): string {
+  let sequence = '`'
+  while (new RegExp('(^|[^`])' + sequence + '([^`]|$)').test(text)) {
+    sequence += '`'
+  }
+
+  let value = text
+  if (
+    /[^ \r\n]/.test(value) &&
+    ((/^[ \r\n]/.test(value) && /[ \r\n]$/.test(value)) || /^`|`$/.test(value))
+  ) {
+    value = ` ${value} `
+  }
+
+  return `${sequence}${value}${sequence}`
+}
+
 function renderInline(inline: Inline): string {
   if (inline.type === 'link') {
     const label = inline.content.map(renderInline).join('')
     return `[${label}](${resolveLinkUrl(inline.href)})`
   }
-  if (inline.styles.code) return `\`${inline.text}\``
+  if (inline.styles.code) return renderCodeSpan(inline.text)
   let text = escapeMarkdown(inline.text)
   if (inline.styles.bold) text = `**${text}**`
   if (inline.styles.italic) text = `*${text}*`
