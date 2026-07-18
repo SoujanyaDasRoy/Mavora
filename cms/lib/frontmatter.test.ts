@@ -41,4 +41,19 @@ describe('buildFrontmatter', () => {
     const tooLong = 'x'.repeat(161)
     expect(() => buildFrontmatter({ ...baseArticle, seoDescription: tooLong })).toThrow(/160/)
   })
+
+  it('escapes literal backslashes in the title before escaping quotes, producing valid YAML', () => {
+    // A title containing a literal backslash followed by a quote is the
+    // case that breaks if backslashes aren't escaped first: naive
+    // quote-only escaping turns `\"` into `\\"` which YAML reads as an
+    // escaped backslash immediately followed by an unescaped, string-
+    // terminating quote.
+    const yaml = buildFrontmatter({ ...baseArticle, seoTitle: 'C:\\Users\\writer "notes"' })
+    expect(yaml).toContain('title: "C:\\\\Users\\\\writer \\"notes\\""')
+  })
+
+  it('escapes literal backslashes in the seoDescription', () => {
+    const yaml = buildFrontmatter({ ...baseArticle, seoDescription: 'Path is C:\\temp\\file, see docs.' })
+    expect(yaml).toContain('description: "Path is C:\\\\temp\\\\file, see docs."')
+  })
 })
