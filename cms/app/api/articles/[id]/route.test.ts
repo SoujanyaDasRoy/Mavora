@@ -6,9 +6,14 @@ vi.mock('@/lib/github', () => ({
   commitContentFile: vi.fn().mockResolvedValue(undefined),
   deleteContentFile: vi.fn().mockResolvedValue(undefined),
 }))
+vi.mock('@/lib/audit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/audit')>('@/lib/audit')
+  return { ...actual, recordAuditEvent: vi.fn(actual.recordAuditEvent) }
+})
 
 import { auth } from '@clerk/nextjs/server'
 import { deleteContentFile } from '@/lib/github'
+import { recordAuditEvent } from '@/lib/audit'
 import { createDraft } from '@/lib/articles'
 import { GET, PATCH, DELETE } from './route'
 
@@ -112,6 +117,23 @@ describe('PATCH /api/articles/[id]', () => {
     )
     expect(response.status).toBe(200)
   })
+
+  it('records an audit event on update', async () => {
+    const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const response = await PATCH(
+      new Request('https://x', { method: 'PATCH', body: JSON.stringify({ title: 'Renamed' }) }),
+      { params: Promise.resolve({ id: article.id }) }
+    )
+    expect(response.status).toBe(200)
+
+    const auditRow = await env.DB.prepare('SELECT * FROM audit_log WHERE article_id = ?')
+      .bind(article.id)
+      .first()
+    expect(auditRow?.actor_id).toBe('w1')
+    expect(auditRow?.action).toBe('update')
+  })
 })
 
 describe('DELETE /api/articles/[id]', () => {
@@ -162,5 +184,16 @@ describe('DELETE /api/articles/[id]', () => {
     })
     expect(response.status).toBe(204)
     expect(deleteContentFile).not.toHaveBeenCalled()
+  })
+
+  it('still returns 204 when recordAuditEvent fails', async () => {
+    const article = await createDraft(env.DB, { title: 'Mine', pillar: 'ai', authorId: 'w1' })
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+    ;(recordAuditEvent as any).mockRejectedValueOnce(new Error('audit write failed'))
+
+    const response = await DELETE(new Request('https://x', { method: 'DELETE' }), {
+      params: Promise.resolve({ id: article.id }),
+    })
+    expect(response.status).toBe(204)
   })
 })

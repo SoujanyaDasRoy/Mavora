@@ -43,7 +43,11 @@ export async function POST(
     .bind(id)
     .run()
 
-  await recordAuditEvent(db, { actorId: userId, action: 'publish', articleId: id })
+  try {
+    await recordAuditEvent(db, { actorId: userId, action: 'publish', articleId: id })
+  } catch (error) {
+    console.error('Failed to record audit event for article publish', error)
+  }
 
   return new Response(JSON.stringify({ published: true, path }), { status: 200 })
 }

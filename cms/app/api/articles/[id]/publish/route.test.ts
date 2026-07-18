@@ -6,9 +6,14 @@ vi.mock('@/lib/github', () => ({
   commitContentFile: vi.fn().mockResolvedValue(undefined),
   deleteContentFile: vi.fn().mockResolvedValue(undefined),
 }))
+vi.mock('@/lib/audit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/audit')>('@/lib/audit')
+  return { ...actual, recordAuditEvent: vi.fn(actual.recordAuditEvent) }
+})
 
 import { auth } from '@clerk/nextjs/server'
 import { commitContentFile } from '@/lib/github'
+import { recordAuditEvent } from '@/lib/audit'
 import { createDraft, updateArticle, getArticleById } from '@/lib/articles'
 import { POST } from './route'
 
@@ -65,5 +70,20 @@ describe('POST /api/articles/[id]/publish', () => {
       params: Promise.resolve({ id: article.id }),
     })
     expect(response.status).toBe(403)
+  })
+
+  it('still returns 200 when recordAuditEvent fails', async () => {
+    const article = await createDraft(env.DB, { title: 'Still publishes', pillar: 'ai', authorId: 'w1' })
+    await updateArticle(env.DB, article.id, { seoDescription: 'A description.' })
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+    ;(recordAuditEvent as any).mockRejectedValueOnce(new Error('audit write failed'))
+
+    const response = await POST(new Request('https://x', { method: 'POST' }), {
+      params: Promise.resolve({ id: article.id }),
+    })
+    expect(response.status).toBe(200)
+
+    const updated = await getArticleById(env.DB, article.id)
+    expect(updated?.status).toBe('published')
   })
 })

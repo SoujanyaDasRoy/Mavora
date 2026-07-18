@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { getDb } from '@/lib/cloudflare'
 import { getWriter } from '@/lib/writers'
 import { createDraft, listArticles } from '@/lib/articles'
+import { recordAuditEvent } from '@/lib/audit'
 
 const createSchema = z.object({
   title: z.string().min(1),
@@ -36,5 +37,12 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const article = await createDraft(db, { ...parsed.data, authorId: userId })
+
+  try {
+    await recordAuditEvent(db, { actorId: userId, action: 'create', articleId: article.id })
+  } catch (error) {
+    console.error('Failed to record audit event for article create', error)
+  }
+
   return new Response(JSON.stringify(article), { status: 201 })
 }

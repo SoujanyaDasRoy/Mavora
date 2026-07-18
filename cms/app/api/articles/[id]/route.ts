@@ -89,6 +89,13 @@ export async function PATCH(
   }
 
   const updated = await updateArticle(result.db, id, parsed.data)
+
+  try {
+    await recordAuditEvent(result.db, { actorId: result.userId, action: 'update', articleId: id })
+  } catch (error) {
+    console.error('Failed to record audit event for article update', error)
+  }
+
   return new Response(JSON.stringify(updated), { status: 200 })
 }
 
@@ -106,6 +113,12 @@ export async function DELETE(
   }
 
   await deleteArticleRow(result.db, id)
-  await recordAuditEvent(result.db, { actorId: result.userId, action: 'delete', articleId: id })
+
+  try {
+    await recordAuditEvent(result.db, { actorId: result.userId, action: 'delete', articleId: id })
+  } catch (error) {
+    console.error('Failed to record audit event for article delete', error)
+  }
+
   return new Response(null, { status: 204 })
 }
