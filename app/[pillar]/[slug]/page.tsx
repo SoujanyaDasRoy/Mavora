@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { MDXRemote } from 'next-mdx-remote/rsc'
 import { PILLARS, Pillar, getAllPosts, getPostBySlug } from '@/lib/content'
 
 export function generateStaticParams() {
@@ -18,7 +19,9 @@ export default async function ArticlePage({
     <article>
       <h1>{post.frontmatter.title}</h1>
       <p>{post.frontmatter.description}</p>
-      <div>{post.content}</div>
+      <div>
+        <MDXRemote source={post.content} />
+      </div>
     </article>
   )
 }

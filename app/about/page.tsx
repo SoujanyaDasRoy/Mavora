@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { MDXRemote } from 'next-mdx-remote/rsc'
 import { getPageBySlug } from '@/lib/pages'
 
 export default function AboutPage() {
@@ -7,7 +8,9 @@ export default function AboutPage() {
   return (
     <main>
       <h1>{page.title}</h1>
-      <div>{page.content}</div>
+      <div>
+        <MDXRemote source={page.content} />
+      </div>
     </main>
   )
 }
