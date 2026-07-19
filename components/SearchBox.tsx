@@ -12,7 +12,9 @@ export function SearchBox() {
   const [status, setStatus] = useState<Status>('loading')
 
   useEffect(() => {
-    fetch('/search-index.json')
+    const controller = new AbortController()
+
+    fetch('/search-index.json', { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`Failed to load search index: ${r.status}`)
         return r.json()
@@ -21,9 +23,12 @@ export function SearchBox() {
         setIndex(data)
         setStatus('ready')
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return
         setStatus('error')
       })
+
+    return () => controller.abort()
   }, [])
 
   const results = query.trim()
