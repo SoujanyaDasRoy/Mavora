@@ -1,17 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 
 export function ThemeToggle() {
-  // Lazy initializer reads the real DOM state synchronously during the first client
-  // render, avoiding a one-frame flash of the wrong icon. The `typeof document` guard
-  // keeps this SSR-safe (server render has no DOM and just gets `false`, which is
-  // irrelevant since this Client Component's server-rendered markup isn't what the
-  // user sees first paint of on the client — the pre-paint script in layout.tsx has
-  // already set the `.dark` class before this component's client render runs).
-  const [isDark, setIsDark] = useState(
-    () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-  )
+  // Initial state matches what SSR always renders (`false`, since there's no DOM on
+  // the server), so the server-rendered markup and the client's first render agree —
+  // no hydration mismatch. useLayoutEffect then runs synchronously after the DOM is
+  // mutated but before the browser paints, so it can correct `isDark` to match the
+  // real DOM state (already set by the pre-paint script in layout.tsx) without ever
+  // showing a visible flash of the wrong icon.
+  const [isDark, setIsDark] = useState(false)
+
+  useLayoutEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'))
+  }, [])
 
   function toggle() {
     const next = !isDark
