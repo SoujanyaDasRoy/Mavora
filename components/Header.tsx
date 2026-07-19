@@ -1,12 +1,23 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
 import { ThemeToggle } from './ThemeToggle'
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    if (!mobileOpen) return
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setMobileOpen(false)
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [mobileOpen])
 
   return (
     <header className="border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-bg)] z-50">
@@ -35,6 +46,7 @@ export function Header() {
             type="button"
             className="md:hidden rounded-full p-2 hover:bg-[var(--color-border)] transition-colors"
             aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((open) => !open)}
           >
             ☰
