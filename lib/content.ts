@@ -2,11 +2,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 import { z } from 'zod'
+import { PILLARS, type Pillar } from './pillars'
 
 const CONTENT_DIR = path.join(process.cwd(), 'content', 'posts')
 
-export const PILLARS = ['ai', 'technology', 'productivity', 'business'] as const
-export type Pillar = (typeof PILLARS)[number]
+export { PILLARS }
+export type { Pillar }
 
 export const frontmatterSchema = z.object({
   title: z.string().min(1),
