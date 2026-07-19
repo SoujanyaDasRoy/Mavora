@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { PILLARS, Pillar, getPostsByPillar } from '@/lib/content'
 import { PILLAR_LABELS } from '@/lib/pillars'
@@ -5,6 +6,21 @@ import { ArticleCard } from '@/components/ArticleCard'
 
 export function generateStaticParams() {
   return PILLARS.map((pillar) => ({ pillar }))
+}
+
+export function generateMetadata({
+  params,
+}: {
+  params: Promise<{ pillar: string }>
+}): Promise<Metadata> {
+  return params.then(({ pillar: pillarParam }) => {
+    if (!PILLARS.includes(pillarParam as Pillar)) return {}
+    const label = PILLAR_LABELS[pillarParam as Pillar] ?? pillarParam
+    return {
+      title: `${label} Articles`,
+      description: `Practical, actionable ${label} articles from Mavora.`,
+    }
+  })
 }
 
 export default async function PillarPage({

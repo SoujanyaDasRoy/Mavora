@@ -1,6 +1,13 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import { getPageBySlug } from '@/lib/pages'
+
+export function generateMetadata(): Metadata {
+  const page = getPageBySlug('privacy')
+  if (!page) return {}
+  return { title: page.title }
+}
 
 export default function PrivacyPage() {
   const page = getPageBySlug('privacy')

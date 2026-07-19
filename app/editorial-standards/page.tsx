@@ -1,6 +1,13 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import { getPageBySlug } from '@/lib/pages'
+
+export function generateMetadata(): Metadata {
+  const page = getPageBySlug('editorial-standards')
+  if (!page) return {}
+  return { title: page.title }
+}
 
 export default function EditorialStandardsPage() {
   const page = getPageBySlug('editorial-standards')
