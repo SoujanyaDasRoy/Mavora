@@ -14,7 +14,7 @@ vi.mock('@/lib/audit', async () => {
 import { auth } from '@clerk/nextjs/server'
 import { deleteContentFile } from '@/lib/github'
 import { recordAuditEvent } from '@/lib/audit'
-import { createDraft } from '@/lib/articles'
+import { createDraft, getArticleById } from '@/lib/articles'
 import { GET, PATCH, DELETE } from './route'
 
 beforeEach(async () => {
@@ -294,6 +294,55 @@ describe('DELETE /api/articles/[id]', () => {
     expect(await bucket.get(key1)).toBeNull()
     expect(await bucket.get(key2)).toBeNull()
     expect(await bucket.get(keptKey)).not.toBeNull()
+  })
+
+  // Real bug (fix batch 4, issue 1): deleteMediaObjects previously had no
+  // internal error handling, so an R2 outage on any one object's delete
+  // would throw uncaught out of the DELETE handler -- aborting it AFTER
+  // deleteContentFile (git) already ran but BEFORE deleteArticleRow (D1)
+  // ever got a chance to. That leaves a published article's MDX file gone
+  // from git while D1 still shows it live -- a desync with no automatic
+  // recovery path. This proves the fix: deleteArticleRow (and the audit
+  // log, and the 204 response) all still happen even when one R2 delete
+  // fails, and the article's `media` rows are still cleaned up via the
+  // articles->media ON DELETE CASCADE (so the surviving orphaned R2 object
+  // has no matching `media` row and will be reclaimed by the weekly
+  // cleanupOrphanedMedia cron).
+  it('still deletes the article row and returns 204 when an R2 delete fails for one media object', async () => {
+    const article = await createDraft(env.DB, { title: 'Has media', pillar: 'ai', authorId: 'w1' })
+    ;(auth as any).mockResolvedValue({ userId: 'w1' })
+
+    const bucket = env.MEDIA_BUCKET
+    const key1 = `articles/${article.id}/one.webp`
+    const key2 = `articles/${article.id}/two.webp`
+    await bucket.put(key1, new Uint8Array([1]))
+    await bucket.put(key2, new Uint8Array([1]))
+    await env.DB.prepare("INSERT INTO media (id, article_id, r2_key, alt_text) VALUES ('m1', ?, ?, '')")
+      .bind(article.id, key1)
+      .run()
+    await env.DB.prepare("INSERT INTO media (id, article_id, r2_key, alt_text) VALUES ('m2', ?, ?, '')")
+      .bind(article.id, key2)
+      .run()
+
+    const realDelete = bucket.delete.bind(bucket)
+    const deleteSpy = vi.spyOn(bucket, 'delete').mockImplementation(async (keys: string | string[]) => {
+      if (keys === key1) throw new Error('simulated R2 outage')
+      return realDelete(keys as string)
+    })
+
+    const response = await DELETE(new Request('https://x', { method: 'DELETE' }), {
+      params: Promise.resolve({ id: article.id }),
+    })
+    expect(response.status).toBe(204)
+
+    // D1 cleanup completed despite the R2 failure: the article row and (via
+    // CASCADE) its media rows are gone, even for the object whose R2 delete
+    // failed.
+    expect(await getArticleById(env.DB, article.id)).toBeNull()
+    const mediaRows = await env.DB.prepare('SELECT id FROM media WHERE article_id = ?').bind(article.id).all()
+    expect(mediaRows.results).toHaveLength(0)
+
+    deleteSpy.mockRestore()
   })
 
   it('still returns 204 when recordAuditEvent fails', async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { env } from 'cloudflare:test'
 import {
   validateUpload,
@@ -82,6 +82,43 @@ describe('deleteMediaObjects', () => {
 
   it('does nothing when the article has no media rows', async () => {
     await expect(deleteMediaObjects(env.MEDIA_BUCKET, env.DB, 'a1')).resolves.toBeUndefined()
+  })
+
+  // Real bug: deleteMediaObjects had no internal error handling, so if a
+  // single bucket.delete() call threw (e.g. a transient R2 outage), the
+  // error propagated out uncaught. Called from DELETE /api/articles/[id]
+  // in the order deleteContentFile (git) -> deleteMediaObjects (R2) ->
+  // deleteArticleRow (D1), an uncaught throw here aborts the handler before
+  // deleteArticleRow ever runs -- leaving the article's MDX file already
+  // gone from git while the D1 row still shows it as published. Since a
+  // partial-R2-cleanup-but-complete-D1-cleanup state self-heals via the
+  // weekly cleanupOrphanedMedia cron (an R2 object survives, but its `media`
+  // row is gone once deleteArticleRow's ON DELETE CASCADE runs, so the cron
+  // will find and reclaim it later), deleteMediaObjects must never let one
+  // failing deletion block the others or block the caller.
+  it('does not throw when bucket.delete fails for one key, and still attempts to delete the rest', async () => {
+    const bucket = env.MEDIA_BUCKET
+    const key1 = 'articles/a1/one.webp'
+    const key2 = 'articles/a1/two.webp'
+    await bucket.put(key1, new Uint8Array([1]))
+    await bucket.put(key2, new Uint8Array([1]))
+    await recordMedia(env.DB, 'a1', key1, '')
+    await recordMedia(env.DB, 'a1', key2, '')
+
+    const realDelete = bucket.delete.bind(bucket)
+    const deleteSpy = vi.spyOn(bucket, 'delete').mockImplementation(async (keys: string | string[]) => {
+      if (keys === key1) throw new Error('simulated R2 outage')
+      return realDelete(keys as string)
+    })
+
+    await expect(deleteMediaObjects(bucket, env.DB, 'a1')).resolves.toBeUndefined()
+
+    // The failing key's object is untouched (delete never actually ran for
+    // it); the other key's object was still deleted despite the failure.
+    expect(await bucket.get(key1)).not.toBeNull()
+    expect(await bucket.get(key2)).toBeNull()
+
+    deleteSpy.mockRestore()
   })
 })
 

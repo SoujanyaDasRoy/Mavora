@@ -54,6 +54,22 @@ export async function recordMedia(
 // this function instead deletes a specific, known set of objects (an
 // article's own media) as part of that article's own deletion, so it has no
 // need for that function's bucket-wide pagination or TOCTOU grace period.
+// Each bucket.delete() is wrapped in its own try/catch so one failing
+// deletion (e.g. a transient R2 outage) can never block the others, and can
+// never propagate out of this function. That matters because the caller
+// (app/api/articles/[id]/route.ts's DELETE handler) runs this BETWEEN
+// deleteContentFile (git) and deleteArticleRow (D1); if this function threw,
+// deleteArticleRow would never run, leaving a published article's MDX file
+// already gone from git while its D1 row still shows it as live -- a desync
+// with no automatic recovery path. A worst-case partial failure here (some
+// R2 objects left behind) is self-healing instead: this function never
+// deletes `media` rows directly (it never has -- see the file-level comment
+// below), so the ON DELETE CASCADE on `articles` -> `media` that fires when
+// deleteArticleRow subsequently runs still removes ALL of this article's
+// `media` rows, including the ones whose R2 object failed to delete. Those
+// surviving R2 objects then have no matching `media` row, so the weekly
+// cleanupOrphanedMedia cron (lib/media-cleanup.ts) will find and reclaim
+// them on its next run.
 export async function deleteMediaObjects(
   bucket: R2Bucket,
   db: D1Database,
@@ -63,7 +79,11 @@ export async function deleteMediaObjects(
     await db.prepare('SELECT r2_key FROM media WHERE article_id = ?').bind(articleId).all()
   ).results as { r2_key: string }[]
   for (const row of rows) {
-    await bucket.delete(row.r2_key)
+    try {
+      await bucket.delete(row.r2_key)
+    } catch (error) {
+      console.error(`Failed to delete R2 object ${row.r2_key} for article ${articleId}`, error)
+    }
   }
 }
 
