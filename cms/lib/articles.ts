@@ -44,12 +44,44 @@ function rowToArticle(row: any): Article {
   }
 }
 
+// articles.slug has a UNIQUE constraint (migrations/0001_init.sql). Two
+// titles that slugify to the same value (including exact duplicates) would
+// otherwise hit an unhandled D1 "UNIQUE constraint failed" error, surfacing
+// as an uncaught 500 to the writer. Capped well below any realistic number
+// of same-titled drafts -- if this is ever exhausted, something is
+// pathological (e.g. a bug generating duplicate titles in a loop), so we
+// throw a clear, catchable error rather than looping forever.
+const MAX_SLUG_ATTEMPTS = 20
+
+// Finds a slug that isn't already taken, starting from `baseSlug` and
+// falling back to `${baseSlug}-2`, `${baseSlug}-3`, ... A numeric suffix
+// (rather than a random one) keeps the resulting article URL predictable
+// and readable for the writer. This is a pre-check (SELECT before INSERT)
+// rather than a catch-and-retry on the D1 constraint error: it's simpler
+// and doesn't depend on parsing D1's error message/code to distinguish "it
+// was specifically a UNIQUE violation on `slug`" from any other failure.
+// There's a theoretical TOCTOU gap between this check and the INSERT below
+// (two concurrent createDraft calls with the same title could both pass the
+// check for the same candidate), but this app has no concurrent-write path
+// that would trigger it in practice; the column's UNIQUE constraint remains
+// as a backstop that would surface as a 500 in that vanishingly rare case.
+async function uniqueSlug(db: D1Database, baseSlug: string): Promise<string> {
+  for (let attempt = 1; attempt <= MAX_SLUG_ATTEMPTS; attempt++) {
+    const candidate = attempt === 1 ? baseSlug : `${baseSlug}-${attempt}`
+    const existing = await db.prepare('SELECT 1 FROM articles WHERE slug = ?').bind(candidate).first()
+    if (!existing) return candidate
+  }
+  throw new Error(
+    `Could not generate a unique slug for "${baseSlug}" after ${MAX_SLUG_ATTEMPTS} attempts`
+  )
+}
+
 export async function createDraft(
   db: D1Database,
   input: { title: string; pillar: Pillar; authorId: string }
 ): Promise<Article> {
   const id = crypto.randomUUID()
-  const slug = slugify(input.title)
+  const slug = await uniqueSlug(db, slugify(input.title))
   await db
     .prepare(
       `INSERT INTO articles (id, title, slug, pillar, status, blocknote_content, author_id)
