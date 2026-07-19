@@ -42,6 +42,7 @@
 // the TypeScript `cleanupOrphanedMedia` below.
 import openNextWorker from '../.open-next/worker.js'
 import { cleanupOrphanedMedia } from '../lib/media-cleanup'
+import { deleteOldAuditLogs } from '../lib/audit'
 
 // Forwards any other named exports (e.g. the Durable Object classes the
 // adapter's default caching config may bind) so adding this wrapper never
@@ -53,5 +54,10 @@ export default {
   fetch: openNextWorker.fetch,
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(cleanupOrphanedMedia(env.DB, env.MEDIA_BUCKET))
+    // audit_log retention (fix batch 4, issue 3): riding the same weekly
+    // Cron Trigger as the R2 orphan cleanup above rather than adding a new
+    // one -- see lib/audit.ts's deleteOldAuditLogs for the retention window
+    // and reasoning.
+    ctx.waitUntil(deleteOldAuditLogs(env.DB))
   },
 }
