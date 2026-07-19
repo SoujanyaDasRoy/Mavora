@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
-import { PILLARS, Pillar, getAllPosts, getPostBySlug } from '@/lib/content'
+import { PILLARS, type Pillar, getAllPosts, getPostBySlug } from '@/lib/content'
 import { YouTubeEmbed } from '@/components/YouTubeEmbed'
 import { TwitterEmbed } from '@/components/TwitterEmbed'
 
-export function generateStaticParams() {
+// Disable dynamic params so unknown slugs get a 404 (required with output:'export')
+export const dynamicParams = false
+
+export async function generateStaticParams() {
   return getAllPosts().map((post) => ({ pillar: post.pillar, slug: post.slug }))
 }
 

@@ -11,10 +11,9 @@ export function Footer() {
 
           {/* Brand column */}
           <div className="md:col-span-1">
-            {/* Logo — blank per user request; insert your logo here */}
-            <div className="mb-3 h-8 w-24 border border-dashed border-[var(--color-border)] rounded flex items-center justify-center text-[10px] text-[var(--color-fg-subtle)]">
-              Logo
-            </div>
+            {/* Logo — swaps between light/dark variants via CSS */}
+            <img src="/logo-light.jpg" alt="Mavora" className="h-7 w-auto mb-3 block dark:hidden" />
+            <img src="/logo-dark.jpg"  alt="Mavora" className="h-7 w-auto mb-3 hidden dark:block" />
             <p className="text-sm text-[var(--color-fg-muted)] leading-relaxed">
               Knowledge for the ambitious. AI, technology, productivity, and business — curated weekly.
             </p>

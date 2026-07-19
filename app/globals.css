@@ -31,14 +31,14 @@
 }
 
 :root.dark {
-  --color-bg: #0a0a0a;
-  --color-bg-secondary: #111111;
-  --color-bg-tertiary: #1a1a1a;
+  --color-bg: #1a1a1a;
+  --color-bg-secondary: #222222;
+  --color-bg-tertiary: #2a2a2a;
   --color-fg: #f0f0f0;
   --color-fg-muted: #a8a8a8;
   --color-fg-subtle: #666666;
-  --color-border: #222222;
-  --color-border-strong: #333333;
+  --color-border: #333333;
+  --color-border-strong: #444444;
 }
 
 /* ─── Base ───────────────────────────────────────────────────── */
