@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { isSafeHttpUrl } from '@/lib/safe-url'
 
 interface TwitterEmbedProps {
   url: string
@@ -69,10 +70,18 @@ export function TwitterEmbed({ url }: TwitterEmbedProps) {
     }
   }, [])
 
+  // The CMS validates this URL's hostname/protocol before publishing, but
+  // this component doesn't blindly trust that upstream check held -- `url`
+  // reaches an `href` here, so it's re-validated locally as an http(s) URL
+  // before ever being used as one. `new URL('javascript:...')` parses
+  // without throwing and React does not block `javascript:` hrefs, so
+  // skipping this check would make a CMS allowlist bypass a live XSS.
+  const safeUrl = isSafeHttpUrl(url)
+
   return (
     <div ref={containerRef} className="my-6">
       <blockquote className="twitter-tweet">
-        <a href={url}>{url}</a>
+        {safeUrl ? <a href={url}>{url}</a> : <span>{url}</span>}
       </blockquote>
     </div>
   )

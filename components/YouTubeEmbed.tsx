@@ -1,3 +1,5 @@
+import { isSafeHttpUrl } from '@/lib/safe-url'
+
 interface YouTubeEmbedProps {
   url: string
 }
@@ -43,6 +45,16 @@ export function YouTubeEmbed({ url }: YouTubeEmbedProps) {
   if (!videoId) {
     // Malformed/unparseable video ID: render a plain fallback link instead
     // of a broken iframe or throwing.
+    //
+    // The CMS validates this URL's hostname before publishing, but this
+    // component doesn't blindly trust that upstream check held -- `url`
+    // reaches an `href` here, so it's re-validated locally as an http(s)
+    // URL before ever being used as one. `new URL('javascript:...')` parses
+    // without throwing and React does not block `javascript:` hrefs, so
+    // skipping this check would make a CMS allowlist bypass a live XSS.
+    if (!isSafeHttpUrl(url)) {
+      return <span>{url}</span>
+    }
     return (
       <a href={url} target="_blank" rel="noopener noreferrer">
         {url}

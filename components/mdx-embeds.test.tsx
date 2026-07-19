@@ -108,4 +108,47 @@ describe('MDX embed components resolve through the real MDX pipeline', () => {
     expect(html).toContain('<a')
     expect(html).toContain('https://www.youtube.com/watch')
   })
+
+  // These two prove the fix for the defense-in-depth finding: neither
+  // component should ever place a raw, unvalidated `url` prop into an
+  // `href` attribute. `new URL('javascript:alert(1)')` parses without
+  // throwing, and YouTubeEmbed's video-ID extraction returns null for it
+  // (falling to the fallback <a> path) -- so without local protocol
+  // validation, a bypass of the CMS's upstream hostname allowlist would put
+  // a live `javascript:` href on the page. React does not block
+  // `javascript:` hrefs itself (only warns in dev), so this must be
+  // enforced by the component. Asserting on the precise `href="javascript:`
+  // substring (not just "does the string javascript: appear anywhere")
+  // because the plain-text fallback still renders the raw URL as visible
+  // text, which is fine -- only a *live* href is the vulnerability.
+  it('YouTubeEmbed never places a javascript: URL into a live href (fallback path)', async () => {
+    const mdx = '<YouTubeEmbed url="javascript:alert(1)" />'
+    const html = await renderMdx(mdx, { YouTubeEmbed })
+
+    expect(html).not.toMatch(/href="javascript:/i)
+    expect(html).not.toContain('<a')
+  })
+
+  it('TwitterEmbed never places a javascript: URL into a live href', async () => {
+    const mdx = '<TwitterEmbed url="javascript:alert(1)" />'
+    const html = await renderMdx(mdx, { TwitterEmbed })
+
+    expect(html).not.toMatch(/href="javascript:/i)
+    expect(html).not.toContain('<a')
+    expect(html).toContain('twitter-tweet')
+  })
+
+  // Regression coverage: a well-formed https:// URL must still produce a
+  // real, live href in both components' fallback/render paths.
+  it('YouTubeEmbed fallback still renders a live href for a well-formed https:// URL', () => {
+    const html = renderToStaticMarkup(<YouTubeEmbed url="https://www.youtube.com/watch" />)
+    expect(html).toMatch(/<a[^>]*href="https:\/\/www\.youtube\.com\/watch"/)
+  })
+
+  it('TwitterEmbed still renders a live href for a well-formed https:// URL', async () => {
+    const mdx = '<TwitterEmbed url="https://twitter.com/someuser/status/123456789" />'
+    const html = await renderMdx(mdx, { TwitterEmbed })
+
+    expect(html).toMatch(/<a[^>]*href="https:\/\/twitter\.com\/someuser\/status\/123456789"/)
+  })
 })
