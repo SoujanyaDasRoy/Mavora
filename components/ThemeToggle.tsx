@@ -1,13 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false)
-
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'))
-  }, [])
+  // Lazy initializer reads the real DOM state synchronously during the first client
+  // render, avoiding a one-frame flash of the wrong icon. The `typeof document` guard
+  // keeps this SSR-safe (server render has no DOM and just gets `false`, which is
+  // irrelevant since this Client Component's server-rendered markup isn't what the
+  // user sees first paint of on the client — the pre-paint script in layout.tsx has
+  // already set the `.dark` class before this component's client render runs).
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  )
 
   function toggle() {
     const next = !isDark
