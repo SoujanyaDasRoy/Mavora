@@ -6,7 +6,7 @@ import type { SearchEntry } from '@/lib/search-index'
 
 type Status = 'loading' | 'ready' | 'error'
 
-export function SearchBox() {
+export function SearchBox({ onClose }: { onClose?: () => void }) {
   const [index, setIndex] = useState<SearchEntry[]>([])
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<Status>('loading')
@@ -58,7 +58,7 @@ export function SearchBox() {
         <ul className="flex flex-col gap-4">
           {results.map((entry) => (
             <li key={`${entry.pillar}-${entry.slug}`}>
-              <Link href={`/${entry.pillar}/${entry.slug}`} className="group block">
+              <Link href={`/${entry.pillar}/${entry.slug}`} className="group block" onClick={onClose}>
                 <p className="font-semibold group-hover:text-[var(--color-accent)] transition-colors">
                   {entry.title}
                 </p>
