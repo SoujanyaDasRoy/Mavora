@@ -15,13 +15,18 @@ export function prefersReducedMotion(): boolean {
   return matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export function revealOnScroll(element: HTMLElement, options?: { delay?: number }): void {
+export function revealOnScroll(
+  element: HTMLElement,
+  options?: { delay?: number }
+): gsap.core.Tween | undefined {
   if (prefersReducedMotion()) {
+    // gsap.set() applies styles immediately without creating a killable tween/ScrollTrigger,
+    // so there's nothing for the caller to clean up in this branch.
     gsap.set(element, { opacity: 1, y: 0 })
-    return
+    return undefined
   }
 
-  gsap.fromTo(
+  return gsap.fromTo(
     element,
     { opacity: 0, y: 20 },
     {
