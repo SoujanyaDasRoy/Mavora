@@ -1,16 +1,10 @@
 import Link from 'next/link'
 import type { Post } from '@/lib/content'
+import { PILLAR_LABELS } from '@/lib/pillars'
 
 interface ArticleCardProps {
   post: Post
   variant: 'hero' | 'grid' | 'compact'
-}
-
-const PILLAR_LABELS: Record<Post['pillar'], string> = {
-  ai: 'AI',
-  technology: 'Technology',
-  productivity: 'Productivity',
-  business: 'Business',
 }
 
 export function ArticleCard({ post, variant }: ArticleCardProps) {

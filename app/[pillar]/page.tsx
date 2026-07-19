@@ -1,13 +1,7 @@
 import { notFound } from 'next/navigation'
 import { PILLARS, Pillar, getPostsByPillar } from '@/lib/content'
+import { PILLAR_LABELS } from '@/lib/pillars'
 import { ArticleCard } from '@/components/ArticleCard'
-
-const PILLAR_LABELS: Record<string, string> = {
-  ai: 'AI',
-  technology: 'Technology',
-  productivity: 'Productivity',
-  business: 'Business',
-}
 
 export function generateStaticParams() {
   return PILLARS.map((pillar) => ({ pillar }))

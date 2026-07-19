@@ -2,15 +2,8 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { PILLARS } from '@/lib/pillars'
+import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
 import { ThemeToggle } from './ThemeToggle'
-
-const PILLAR_LABELS: Record<(typeof PILLARS)[number], string> = {
-  ai: 'AI',
-  technology: 'Technology',
-  productivity: 'Productivity',
-  business: 'Business',
-}
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)

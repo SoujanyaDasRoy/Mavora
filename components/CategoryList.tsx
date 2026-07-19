@@ -1,12 +1,6 @@
 import Link from 'next/link'
 import { PILLARS, getPostsByPillar } from '@/lib/content'
-
-const PILLAR_LABELS: Record<(typeof PILLARS)[number], string> = {
-  ai: 'AI',
-  technology: 'Technology',
-  productivity: 'Productivity',
-  business: 'Business',
-}
+import { PILLAR_LABELS } from '@/lib/pillars'
 
 export function CategoryList() {
   const counts = PILLARS.map((pillar) => ({
