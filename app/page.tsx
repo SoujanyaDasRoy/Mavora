@@ -1,6 +1,7 @@
 import { getAllPosts } from '@/lib/content'
 import { ArticleCard } from '@/components/ArticleCard'
 import { CategoryList } from '@/components/CategoryList'
+import { RevealSection } from '@/components/RevealSection'
 
 export default function HomePage() {
   const posts = getAllPosts()
@@ -12,7 +13,7 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-[1280px] px-6 md:px-8 py-10">
       {hero && (
-        <section className="grid md:grid-cols-3 gap-10 mb-16">
+        <RevealSection className="grid md:grid-cols-3 gap-10 mb-16">
           <div className="md:col-span-2">
             <ArticleCard post={hero} variant="hero" />
           </div>
@@ -31,22 +32,22 @@ export default function HomePage() {
             )}
             <CategoryList />
           </aside>
-        </section>
+        </RevealSection>
       )}
 
       {featured.length > 0 && (
-        <section className="mb-16">
+        <RevealSection className="mb-16" delay={0.1}>
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--color-fg-muted)] mb-6">Featured</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {featured.map((post) => (
               <ArticleCard key={`${post.pillar}-${post.slug}`} post={post} variant="grid" />
             ))}
           </div>
-        </section>
+        </RevealSection>
       )}
 
       {latestArticles.length > 0 && (
-        <section>
+        <RevealSection delay={0.2}>
           <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--color-fg-muted)] mb-6">
             Latest Articles
           </h2>
@@ -55,7 +56,7 @@ export default function HomePage() {
               <ArticleCard key={`${post.pillar}-${post.slug}`} post={post} variant="grid" />
             ))}
           </div>
-        </section>
+        </RevealSection>
       )}
     </main>
   )
