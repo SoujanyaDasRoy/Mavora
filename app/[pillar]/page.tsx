@@ -1,6 +1,13 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PILLARS, Pillar, getPostsByPillar } from '@/lib/content'
+import { ArticleCard } from '@/components/ArticleCard'
+
+const PILLAR_LABELS: Record<string, string> = {
+  ai: 'AI',
+  technology: 'Technology',
+  productivity: 'Productivity',
+  business: 'Business',
+}
 
 export function generateStaticParams() {
   return PILLARS.map((pillar) => ({ pillar }))
@@ -16,15 +23,13 @@ export default async function PillarPage({
   const pillar = pillarParam as Pillar
   const posts = getPostsByPillar(pillar)
   return (
-    <main>
-      <h1>{pillar}</h1>
-      <ul>
+    <main className="mx-auto max-w-[1280px] px-6 md:px-8 py-10">
+      <h1 className="text-3xl font-extrabold mb-8">{PILLAR_LABELS[pillar] ?? pillar}</h1>
+      <div className="grid md:grid-cols-3 gap-8">
         {posts.map((post) => (
-          <li key={post.slug}>
-            <Link href={`/${pillar}/${post.slug}`}>{post.frontmatter.title}</Link>
-          </li>
+          <ArticleCard key={post.slug} post={post} variant="grid" />
         ))}
-      </ul>
+      </div>
     </main>
   )
 }
