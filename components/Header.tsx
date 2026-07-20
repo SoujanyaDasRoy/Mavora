@@ -54,42 +54,13 @@ export function Header() {
       <Container className="h-[70px] grid grid-cols-[auto_1fr_auto] md:grid-cols-[220px_1fr_220px] items-center gap-4">
 
         {/* ── Logo ─────────────────────────────────────────── */}
+        {/* Real alpha transparency (public/logo.png) — no background-color
+            trick needed, so the same file works on any page background. */}
         <Link href="/" className="shrink-0 flex items-center" aria-label="Mavora home">
-          {/*
-            Light mode strategy:
-              logo bg = #f2f2f2. Page bg = #E8E8E8.
-              brightness(1.1) pushes #f2f2f2 → white.
-              mix-blend-mode:multiply makes white invisible against ANY background.
-              Brand red #E8001C (R=232): 232×1.1=255(clip), 255×232/255=232 → preserves exactly.
-          */}
           <img
-            src="/logo-light.jpg"
+            src="/logo.png"
             alt="Mavora"
-            className="block dark:hidden"
-            style={{
-              width: '180px',
-              height: '51px',
-              objectFit: 'cover',
-              objectPosition: 'center 50%',
-              filter: 'brightness(1.1)',
-              mixBlendMode: 'multiply',
-            }}
-          />
-          {/*
-            Dark mode strategy:
-              logo bg = #3c3c3c == page bg = #3c3c3c.
-              Displayed normally — bg is naturally invisible, no blend trick needed.
-          */}
-          <img
-            src="/logo-dark.jpg"
-            alt="Mavora"
-            className="hidden dark:block"
-            style={{
-              width: '180px',
-              height: '51px',
-              objectFit: 'cover',
-              objectPosition: 'center 50%',
-            }}
+            style={{ width: '180px', height: '51px', objectFit: 'contain' }}
           />
         </Link>
 
@@ -140,16 +111,9 @@ export function Header() {
               <SheetHeader className="px-5 pb-3">
                 <SheetTitle className="text-left">
                   <img
-                    src="/logo-light.jpg"
+                    src="/logo.png"
                     alt="Mavora"
-                    className="block dark:hidden"
-                    style={{ width: '100px', height: '28px', objectFit: 'cover', objectPosition: 'center 50%', mixBlendMode: 'multiply' }}
-                  />
-                  <img
-                    src="/logo-dark.jpg"
-                    alt="Mavora"
-                    className="hidden dark:block"
-                    style={{ width: '100px', height: '28px', objectFit: 'cover', objectPosition: 'center 50%', mixBlendMode: 'screen' }}
+                    style={{ width: '100px', height: '28px', objectFit: 'contain' }}
                   />
                 </SheetTitle>
               </SheetHeader>
