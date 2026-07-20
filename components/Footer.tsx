@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
+import { Container } from '@/components/Container'
 
 export function Footer() {
   const year = new Date().getFullYear()
 
   return (
     <footer className="border-t border-[var(--color-border)] mt-16 bg-[var(--color-bg-secondary)]">
-      <div className="mx-auto max-w-[1280px] px-5 md:px-8 py-12">
+      <Container className="py-12">
         <div className="grid md:grid-cols-4 gap-8 md:gap-10">
 
           {/* Brand column */}
@@ -74,7 +75,7 @@ export function Footer() {
             <Link href="/sitemap.xml" className="hover:text-[var(--color-accent)] transition-colors">Sitemap</Link>
           </div>
         </div>
-      </div>
+      </Container>
     </footer>
   )
 }

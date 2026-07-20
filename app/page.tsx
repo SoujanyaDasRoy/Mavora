@@ -2,30 +2,13 @@ import Link from 'next/link'
 import { getAllPosts } from '@/lib/content'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
 import { RevealSection } from '@/components/RevealSection'
+import { SectionLabel } from '@/components/SectionLabel'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-
-// ─── Section label ─────────────────────────────────────────────
-// Small red accent bar is the ONLY intentional red on the page
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mb-5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
-        {children}
-      </p>
-      <div
-        className="mt-1.5 h-[1.5px] w-full"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, var(--color-accent) 48px, var(--color-border) 48px)',
-        }}
-      />
-    </div>
-  )
-}
+import { estimateReadingTime } from '@/lib/readingTime'
 
 // ─── Pillar badge — neutral, no red ───────────────────────────
 function PillarTag({ pillar }: { pillar: string }) {
@@ -101,6 +84,8 @@ export default function HomePage() {
                       </>
                     )}
                     <DateLabel date={hero.frontmatter.publishedAt} />
+                    <span className="text-[var(--color-border-strong)]">·</span>
+                    <span>{estimateReadingTime(hero.content)} min read</span>
                   </div>
                 </div>
 

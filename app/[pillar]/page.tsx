@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { getPostsByPillar } from '@/lib/content'
 import { PILLARS, PILLAR_LABELS, type Pillar } from '@/lib/pillars'
 import { ArticleCard } from '@/components/ArticleCard'
+import { Container } from '@/components/Container'
+import { PageHeader } from '@/components/PageHeader'
 
 // Disable dynamic params so unknown slugs get a 404 (required with output:'export')
 export const dynamicParams = false
@@ -36,15 +38,28 @@ export default async function PillarPage({
   if (!PILLARS.includes(pillarParam as Pillar)) notFound()
   const pillar = pillarParam as Pillar
   const posts = getPostsByPillar(pillar)
+  const label = PILLAR_LABELS[pillar] ?? pillar
 
   return (
-    <main className="mx-auto max-w-[1280px] px-6 md:px-8 py-10">
-      <h1 className="text-3xl font-extrabold mb-8">{PILLAR_LABELS[pillar] ?? pillar}</h1>
-      <div className="grid md:grid-cols-3 gap-8">
-        {posts.map((post) => (
-          <ArticleCard key={post.slug} post={post} variant="grid" />
-        ))}
-      </div>
+    <main>
+      <Container className="pb-16">
+        <PageHeader
+          eyebrow="Section"
+          title={label}
+          dek={`Practical, actionable ${label.toLowerCase()} articles from Mavora — ${posts.length} published.`}
+        />
+        {posts.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-8">
+            {posts.map((post) => (
+              <ArticleCard key={post.slug} post={post} variant="grid" />
+            ))}
+          </div>
+        ) : (
+          <p className="text-[var(--color-fg-muted)]">
+            No {label.toLowerCase()} articles yet — check back soon.
+          </p>
+        )}
+      </Container>
     </main>
   )
 }

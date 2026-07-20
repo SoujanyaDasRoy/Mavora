@@ -4,8 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
 import { ThemeToggle } from './ThemeToggle'
-import { SearchBox } from './SearchBox'
-import { Button } from '@/components/ui/button'
+import { SearchDialog } from './SearchDialog'
 import {
   Sheet,
   SheetContent,
@@ -14,28 +13,19 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
+import { Container } from '@/components/Container'
 
 /* ── Minimal inline SVG icons (no icon library) ─────────────── */
-function SearchIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="7.5" />
-      <path d="m20 20-3.5-3.5" />
-    </svg>
-  )
-}
-
 function MenuIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round">
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round">
       <path d="M4 7h16M4 12h16M4 17h10" />
     </svg>
   )
 }
 
 export function Header() {
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [scrolled, setScrolled]     = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4)
@@ -57,7 +47,11 @@ export function Header() {
         scrolled ? 'shadow-sm' : '',
       ].join(' ')}
     >
-      <div className="mx-auto max-w-[1280px] px-5 md:px-8 h-[70px] grid grid-cols-[auto_1fr_auto] items-center gap-4">
+      {/* Side columns are locked to equal widths (md+) so the center nav is
+          measured against the true page center, not the leftover space
+          between an oversized logo column and a much narrower controls
+          column — that asymmetry was what pushed the nav visibly right. */}
+      <Container className="h-[70px] grid grid-cols-[auto_1fr_auto] md:grid-cols-[220px_1fr_220px] items-center gap-4">
 
         {/* ── Logo ─────────────────────────────────────────── */}
         <Link href="/" className="shrink-0 flex items-center" aria-label="Mavora home">
@@ -100,15 +94,15 @@ export function Header() {
         </Link>
 
         {/* ── Desktop nav ──────────────────────────────────────── */}
-        <nav className="hidden md:flex items-center justify-center gap-1" aria-label="Main navigation">
+        <nav className="hidden md:flex items-center justify-center gap-1.5" aria-label="Main navigation">
           {navLinks.map(({ label, href }) => (
             <Link
               key={href}
               href={href}
               className={[
-                'relative px-3 py-2 text-[13px] font-medium transition-colors',
+                'relative px-3.5 py-2.5 text-[14px] font-medium transition-colors',
                 'text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]',
-                'after:absolute after:bottom-1 after:left-3 after:right-3 after:h-[1.5px]',
+                'after:absolute after:bottom-1 after:left-3.5 after:right-3.5 after:h-[1.5px]',
                 'after:bg-[var(--color-fg-muted)] after:scale-x-0 after:origin-left',
                 'hover:after:scale-x-100 after:transition-transform after:duration-200',
               ].join(' ')}
@@ -119,18 +113,8 @@ export function Header() {
         </nav>
 
         {/* ── Right controls ───────────────────────────────── */}
-        <div className="flex items-center gap-0.5 shrink-0">
-          {/* Search toggle */}
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setSearchOpen((v) => !v)}
-            aria-label="Toggle search"
-            aria-expanded={searchOpen}
-            className="text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] hover:bg-transparent"
-          >
-            <SearchIcon />
-          </Button>
+        <div className="flex items-center justify-end gap-1 shrink-0">
+          <SearchDialog />
 
           {/* Theme toggle */}
           <ThemeToggle />
@@ -139,7 +123,7 @@ export function Header() {
           <Sheet>
             <SheetTrigger
               className={[
-                'md:hidden inline-flex items-center justify-center size-7 rounded-md',
+                'md:hidden inline-flex items-center justify-center size-9 rounded-md',
                 'text-[var(--color-fg)] hover:text-[var(--color-accent)]',
                 'hover:bg-[var(--color-bg-secondary)] transition-colors',
               ].join(' ')}
@@ -190,14 +174,7 @@ export function Header() {
             </SheetContent>
           </Sheet>
         </div>
-      </div>
-
-      {/* ── Expandable search bar ──────────────────────────── */}
-      {searchOpen && (
-        <div className="border-t border-[var(--color-border)] px-5 md:px-8 py-3 bg-[var(--color-bg-secondary)]">
-          <SearchBox onClose={() => setSearchOpen(false)} />
-        </div>
-      )}
+      </Container>
     </header>
   )
 }

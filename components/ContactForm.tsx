@@ -1,5 +1,9 @@
 'use client'
 
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+
 export function ContactForm() {
   const formId = process.env.NEXT_PUBLIC_FORMSPREE_ID
   if (!formId) {
@@ -8,37 +12,26 @@ export function ContactForm() {
     )
   }
   return (
-    <form action={`https://formspree.io/f/${formId}`} method="POST" className="flex flex-col gap-4 max-w-md">
+    <form action={`https://formspree.io/f/${formId}`} method="POST" className="flex flex-col gap-5 max-w-md">
       <div>
-        <label htmlFor="email" className="block text-sm font-semibold mb-1">Email</label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          required
-          className="w-full rounded border border-[var(--color-border)] bg-transparent px-3 py-2"
-        />
+        <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-fg-muted)] mb-2">
+          Email
+        </label>
+        <Input id="email" type="email" name="email" required className="h-10" />
       </div>
       <div>
-        <label htmlFor="message" className="block text-sm font-semibold mb-1">Message</label>
-        <textarea
-          id="message"
-          name="message"
-          required
-          rows={5}
-          className="w-full rounded border border-[var(--color-border)] bg-transparent px-3 py-2"
-        />
+        <label htmlFor="message" className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-fg-muted)] mb-2">
+          Message
+        </label>
+        <Textarea id="message" name="message" required rows={5} />
       </div>
 
       {/* honeypot field to reduce spam — real users leave it empty */}
       <input type="text" name="_gotcha" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
 
-      <button
-        type="submit"
-        className="self-start rounded bg-[var(--color-accent)] text-white px-5 py-2 font-semibold hover:opacity-90 transition-opacity"
-      >
-        Send
-      </button>
+      <Button type="submit" className="self-start bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white h-9 px-6 font-semibold">
+        Send message
+      </Button>
     </form>
   )
 }

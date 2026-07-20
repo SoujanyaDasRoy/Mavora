@@ -7,8 +7,8 @@ import { useLayoutEffect, useState } from 'react'
 function SunIcon() {
   return (
     <svg
-      width="16"
-      height="16"
+      width="18"
+      height="18"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -32,8 +32,8 @@ function SunIcon() {
 function MoonIcon() {
   return (
     <svg
-      width="16"
-      height="16"
+      width="18"
+      height="18"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -66,7 +66,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-      className="inline-flex items-center justify-center size-7 rounded-md text-[var(--color-fg)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-secondary)] transition-colors"
+      className="inline-flex items-center justify-center size-9 rounded-md text-[var(--color-fg)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-secondary)] transition-colors"
     >
       {isDark ? <SunIcon /> : <MoonIcon />}
     </button>

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { ContactForm } from '@/components/ContactForm'
+import { Container } from '@/components/Container'
+import { PageHeader } from '@/components/PageHeader'
 
 // Unlike the other 5 static pages, there is no content/pages/contact.mdx --
 // this page's copy is hardcoded below rather than loaded via getPageBySlug --
@@ -11,9 +13,15 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="mx-auto max-w-[720px] px-6 py-10">
-      <h1 className="text-3xl font-extrabold mb-6">Contact</h1>
-      <ContactForm />
+    <main>
+      <Container narrow className="pb-16">
+        <PageHeader
+          eyebrow="Company"
+          title="Contact"
+          dek="Questions, tips, or partnership ideas — send them our way."
+        />
+        <ContactForm />
+      </Container>
     </main>
   )
 }

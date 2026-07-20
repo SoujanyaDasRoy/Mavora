@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Post } from '@/lib/content'
 import { PILLAR_LABELS } from '@/lib/pillars'
+import { estimateReadingTime } from '@/lib/readingTime'
 
 interface ArticleCardProps {
   post: Post
@@ -74,7 +75,9 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
         </p>
         <div className="mt-3 flex items-center gap-3">
           <DateStamp date={post.frontmatter.publishedAt} />
-          <span className="text-[var(--color-fg-subtle)] text-xs">· 5 min read</span>
+          <span className="text-[var(--color-fg-subtle)] text-xs">
+            · {estimateReadingTime(post.content)} min read
+          </span>
         </div>
       </Link>
     )

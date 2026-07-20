@@ -1,10 +1,18 @@
 import { SearchBox } from '@/components/SearchBox'
+import { Container } from '@/components/Container'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function SearchPage() {
   return (
-    <main className="mx-auto max-w-[720px] px-6 py-10">
-      <h1 className="text-3xl font-extrabold mb-8">Search</h1>
-      <SearchBox />
+    <main>
+      <Container narrow className="pb-16">
+        <PageHeader
+          eyebrow="Explore"
+          title="Search"
+          dek="Find articles across AI, technology, productivity, and business."
+        />
+        <SearchBox />
+      </Container>
     </main>
   )
 }
