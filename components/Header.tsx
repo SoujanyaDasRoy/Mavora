@@ -67,8 +67,8 @@ export function Header() {
             alt="Mavora"
             className="block dark:hidden"
             style={{
-              width: '210px',
-              height: '60px',
+              width: '180px',
+              height: '51px',
               objectFit: 'cover',
               objectPosition: 'center 50%',
               filter: 'brightness(1.1)',
@@ -85,8 +85,8 @@ export function Header() {
             alt="Mavora"
             className="hidden dark:block"
             style={{
-              width: '210px',
-              height: '60px',
+              width: '180px',
+              height: '51px',
               objectFit: 'cover',
               objectPosition: 'center 50%',
             }}
