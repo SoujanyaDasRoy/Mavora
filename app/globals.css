@@ -38,7 +38,7 @@
   --color-bg-tertiary:   #E6E6E6;
   --color-fg:            #0d0d0d;
   --color-fg-muted:      #5a5a5a;
-  --color-fg-subtle:     #888888;
+  --color-fg-subtle:     #6b6b6b; /* was #888888 — failed WCAG AA (3.25:1) against #F5F5F5 bg; this passes at ~4.9:1 */
   --color-border:        #DEDEDE;
   --color-border-strong: #C8C8C8;
   --color-accent:        #c8102e;
@@ -80,7 +80,7 @@
   --color-bg-tertiary:   #272624;
   --color-fg:            #f0f0f0;
   --color-fg-muted:      #b0b0b0;
-  --color-fg-subtle:     #777777;
+  --color-fg-subtle:     #a8a8a8; /* was #777777 — failed WCAG AA (2.6:1) against #393836 bg; this passes at ~4.9:1 */
   --color-border:        #4A4846;
   --color-border-strong: #565452;
 

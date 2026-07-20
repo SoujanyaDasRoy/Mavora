@@ -38,7 +38,7 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
         {image && (
           <img
             src={image}
-            alt=""
+            alt={post.frontmatter.title}
             className="w-16 h-16 object-cover rounded shrink-0 transition-transform duration-300 group-hover:scale-[1.04]"
           />
         )}
@@ -62,7 +62,7 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
             <img
               src={image}
               alt={post.frontmatter.title}
-              className="w-full aspect-[16/9] object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              className="w-full aspect-[16/9] object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
             />
           </div>
         )}
@@ -85,10 +85,18 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
     return (
       <article className="group hover-lift flex gap-4 border-b border-[var(--color-border)] pb-5 last:border-0 last:pb-0">
         {image && (
-          <Link href={href} className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 overflow-hidden rounded">
+          // aria-hidden + tabIndex=-1: the heading below already links to the
+          // same href, so this image link would be a second, unlabeled tab
+          // stop to the identical destination for keyboard/screen-reader users.
+          <Link
+            href={href}
+            aria-hidden="true"
+            tabIndex={-1}
+            className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 overflow-hidden rounded"
+          >
             <img
               src={image}
-              alt=""
+              alt={post.frontmatter.title}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
             />
           </Link>
@@ -112,11 +120,13 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
   return (
     <article className="group hover-lift flex flex-col card-editorial">
       {image && (
-        <Link href={href} className="overflow-hidden block aspect-[16/9]">
+        // aria-hidden + tabIndex=-1: see the same note in the "list" variant
+        // above — the heading below links to this exact href too.
+        <Link href={href} aria-hidden="true" tabIndex={-1} className="overflow-hidden block aspect-[16/9]">
           <img
             src={image}
-            alt=""
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+            alt={post.frontmatter.title}
+            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.05]"
           />
         </Link>
       )}

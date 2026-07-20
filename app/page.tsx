@@ -3,9 +3,10 @@ import { getAllPosts } from '@/lib/content'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
 import { RevealSection } from '@/components/RevealSection'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 // ─── Section label ─────────────────────────────────────────────
 // Small red accent bar is the ONLY intentional red on the page
@@ -104,11 +105,19 @@ export default function HomePage() {
                 </div>
 
                 {hero.frontmatter.ogImage && (
-                  <Link href={`/${hero.pillar}/${hero.slug}`} className="block group overflow-hidden rounded-lg">
+                  // aria-hidden + tabIndex=-1: the title above already links here —
+                  // without this, keyboard/screen-reader users hit the same
+                  // destination twice in a row with this one announcing nothing.
+                  <Link
+                    href={`/${hero.pillar}/${hero.slug}`}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="block group overflow-hidden rounded-lg"
+                  >
                     <img
                       src={hero.frontmatter.ogImage}
                       alt={hero.frontmatter.title}
-                      className="w-full h-[220px] sm:h-[260px] object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      className="w-full h-[220px] sm:h-[260px] object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
                     />
                   </Link>
                 )}
@@ -127,11 +136,17 @@ export default function HomePage() {
                 {featured.map((post) => (
                   <article key={`${post.pillar}-${post.slug}`} className="group flex flex-col gap-2.5">
                     {post.frontmatter.ogImage && (
-                      <Link href={`/${post.pillar}/${post.slug}`} className="block overflow-hidden rounded-lg">
+                      // aria-hidden + tabIndex=-1: heading below links here too.
+                      <Link
+                        href={`/${post.pillar}/${post.slug}`}
+                        aria-hidden="true"
+                        tabIndex={-1}
+                        className="block overflow-hidden rounded-lg"
+                      >
                         <img
                           src={post.frontmatter.ogImage}
-                          alt=""
-                          className="w-full h-[160px] object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                          alt={post.frontmatter.title}
+                          className="w-full h-[160px] object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
                         />
                       </Link>
                     )}
@@ -159,11 +174,17 @@ export default function HomePage() {
                 {latestArticles.map((post) => (
                   <article key={`${post.pillar}-${post.slug}`} className="group flex gap-3.5 items-start">
                     {post.frontmatter.ogImage && (
-                      <Link href={`/${post.pillar}/${post.slug}`} className="shrink-0 overflow-hidden rounded-md">
+                      // aria-hidden + tabIndex=-1: heading below links here too.
+                      <Link
+                        href={`/${post.pillar}/${post.slug}`}
+                        aria-hidden="true"
+                        tabIndex={-1}
+                        className="shrink-0 overflow-hidden rounded-md"
+                      >
                         <img
                           src={post.frontmatter.ogImage}
-                          alt=""
-                          className="w-[80px] h-[60px] object-cover transition-transform duration-300 group-hover:scale-[1.05]"
+                          alt={post.frontmatter.title}
+                          className="w-[80px] h-[60px] object-cover object-top transition-transform duration-300 group-hover:scale-[1.05]"
                         />
                       </Link>
                     )}
@@ -198,11 +219,17 @@ export default function HomePage() {
                 {latestNews.map((post) => (
                   <article key={`${post.pillar}-${post.slug}`} className="group flex gap-3 py-3 first:pt-0">
                     {post.frontmatter.ogImage && (
-                      <Link href={`/${post.pillar}/${post.slug}`} className="shrink-0 overflow-hidden rounded">
+                      // aria-hidden + tabIndex=-1: title below links here too.
+                      <Link
+                        href={`/${post.pillar}/${post.slug}`}
+                        aria-hidden="true"
+                        tabIndex={-1}
+                        className="shrink-0 overflow-hidden rounded"
+                      >
                         <img
                           src={post.frontmatter.ogImage}
-                          alt=""
-                          className="w-[60px] h-[60px] object-cover transition-transform duration-300 group-hover:scale-[1.06]"
+                          alt={post.frontmatter.title}
+                          className="w-[60px] h-[60px] object-cover object-top transition-transform duration-300 group-hover:scale-[1.06]"
                         />
                       </Link>
                     )}
@@ -254,13 +281,18 @@ export default function HomePage() {
             <p className="text-[11.5px] text-[var(--color-fg-muted)] mb-4 leading-relaxed">
               Weekly insights on AI, tech, productivity and business.
             </p>
-            {/* Dark CTA — not red, keeps page calm */}
-            <Button
-              render={<Link href="#newsletter" />}
-              className="w-full bg-[var(--color-fg)] hover:bg-[var(--color-fg-muted)] text-[var(--color-bg)] text-[12px] font-bold h-8 rounded-md transition-colors"
+            {/* Dark CTA — not red, keeps page calm. Plain Link (not Button's
+                render-as-Link) since base-ui's Button injects type="button"
+                onto whatever element it renders as, which is invalid on <a>. */}
+            <Link
+              href="#newsletter"
+              className={cn(
+                buttonVariants({ size: 'default' }),
+                'w-full bg-[var(--color-fg)] hover:bg-[var(--color-fg-muted)] text-[var(--color-bg)] text-[12px] font-bold h-8 rounded-md transition-colors'
+              )}
             >
               Subscribe Free →
-            </Button>
+            </Link>
           </div>
         </aside>
       </div>
