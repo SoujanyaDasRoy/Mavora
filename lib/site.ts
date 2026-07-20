@@ -1,1 +1,1 @@
-export const SITE_URL = 'https://mavora-9lo.pages.dev'
+export const SITE_URL = 'https://readmavora.vercel.app'
