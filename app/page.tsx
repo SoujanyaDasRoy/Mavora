@@ -50,7 +50,7 @@ export default function HomePage() {
   }, {})
 
   return (
-    <main className="mx-auto max-w-[1280px] px-5 md:px-8 py-8 md:py-10">
+    <main className="mx-auto max-w-[1440px] px-5 md:px-8 py-8 md:py-10">
 
       <div className="grid lg:grid-cols-[1fr_296px] gap-10 lg:gap-12 items-start">
 
@@ -290,7 +290,7 @@ export default function HomePage() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-fg-subtle)] mb-3">
               Newsletter
             </p>
-            <h2 className="font-display font-bold text-[1.6rem] md:text-[2rem] tracking-[-0.025em] leading-[1.15] mb-3">
+            <h2 className="font-inter font-bold text-[1.6rem] md:text-[2rem] tracking-[-0.025em] leading-[1.15] mb-3">
               Knowledge for the Ambitious
             </h2>
             <p className="text-[var(--color-fg-muted)] max-w-md mx-auto text-[13.5px] leading-relaxed mb-7">

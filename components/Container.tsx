@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 interface ContainerProps {
   children: React.ReactNode
   className?: string
-  /** Narrow reading column (static pages, article body) instead of the full 1280px grid width. */
+  /** Narrow reading column (static pages, article body) instead of the full 1440px grid width. */
   narrow?: boolean
 }
 
@@ -12,7 +12,7 @@ interface ContainerProps {
 // pixels the way the old ad hoc `px-6` on static/category/article pages did.
 export function Container({ children, className, narrow = false }: ContainerProps) {
   return (
-    <div className={cn('mx-auto px-5 md:px-8', narrow ? 'max-w-[760px]' : 'max-w-[1280px]', className)}>
+    <div className={cn('mx-auto px-5 md:px-8', narrow ? 'max-w-[760px]' : 'max-w-[1440px]', className)}>
       {children}
     </div>
   )
