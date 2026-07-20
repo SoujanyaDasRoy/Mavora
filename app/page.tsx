@@ -67,7 +67,7 @@ export default function HomePage() {
                 <div className="flex flex-col gap-3">
                   <PillarTag pillar={hero.pillar} />
                   <Link href={`/${hero.pillar}/${hero.slug}`} className="group">
-                    <h2 className="font-display font-bold text-[1.85rem] md:text-[2.1rem] leading-[1.12] tracking-[-0.02em] group-hover:text-[var(--color-fg-muted)] transition-colors">
+                    <h2 className="font-article font-semibold text-[1.9rem] md:text-[2.2rem] leading-[1.1] tracking-[-0.01em] group-hover:text-[var(--color-fg-muted)] transition-colors">
                       {hero.frontmatter.title}
                     </h2>
                   </Link>
@@ -137,7 +137,7 @@ export default function HomePage() {
                     )}
                     <PillarTag pillar={post.pillar} />
                     <Link href={`/${post.pillar}/${post.slug}`}>
-                      <h3 className="font-display font-semibold text-[0.9rem] leading-[1.35] tracking-[-0.01em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3">
+                      <h3 className="font-article font-semibold text-[1rem] leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3">
                         {post.frontmatter.title}
                       </h3>
                     </Link>
@@ -176,7 +176,7 @@ export default function HomePage() {
                     <div className="min-w-0 flex flex-col gap-1.5">
                       <PillarTag pillar={post.pillar} />
                       <Link href={`/${post.pillar}/${post.slug}`}>
-                        <h3 className="font-display font-semibold text-[0.85rem] leading-[1.35] tracking-[-0.01em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-2">
+                        <h3 className="font-article font-semibold text-[0.95rem] leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-2">
                           {post.frontmatter.title}
                         </h3>
                       </Link>
@@ -220,7 +220,7 @@ export default function HomePage() {
                     )}
                     <div className="min-w-0 flex flex-col gap-1">
                       <Link href={`/${post.pillar}/${post.slug}`}>
-                        <p className="text-[12.5px] font-semibold leading-[1.35] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3">
+                        <p className="font-article text-[13.5px] font-semibold leading-[1.3] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3">
                           {post.frontmatter.title}
                         </p>
                       </Link>

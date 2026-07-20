@@ -44,7 +44,7 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
           />
         )}
         <div className="min-w-0">
-          <p className="text-sm font-bold leading-snug group-hover:text-[var(--color-accent)] transition-colors line-clamp-2 mb-1">
+          <p className="font-article text-sm font-semibold leading-snug group-hover:text-[var(--color-accent)] transition-colors line-clamp-2 mb-1">
             {post.frontmatter.title}
           </p>
           <PillarBadge pillar={post.pillar} />
@@ -67,7 +67,7 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
             />
           </div>
         )}
-        <h2 className="font-display font-bold text-2xl md:text-3xl xl:text-4xl leading-tight mt-4 group-hover:text-[var(--color-accent)] transition-colors">
+        <h2 className="font-article font-semibold text-2xl md:text-3xl xl:text-4xl leading-tight mt-4 group-hover:text-[var(--color-accent)] transition-colors">
           {post.frontmatter.title}
         </h2>
         <p className="text-[var(--color-fg-muted)] mt-2 leading-relaxed line-clamp-3">
@@ -108,7 +108,7 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
           <div>
             <PillarBadge pillar={post.pillar} />
             <Link href={href}>
-              <h3 className="font-bold text-sm leading-snug mt-1 group-hover:text-[var(--color-accent)] transition-colors line-clamp-3">
+              <h3 className="font-article font-semibold text-[15px] leading-snug mt-1 group-hover:text-[var(--color-accent)] transition-colors line-clamp-3">
                 {post.frontmatter.title}
               </h3>
             </Link>
@@ -136,7 +136,7 @@ export function ArticleCard({ post, variant }: ArticleCardProps) {
       <div className="p-4 flex flex-col flex-1 gap-2">
         <PillarBadge pillar={post.pillar} />
         <Link href={href} className="flex-1">
-          <h3 className="font-bold leading-snug text-sm group-hover:text-[var(--color-accent)] transition-colors line-clamp-3">
+          <h3 className="font-article font-semibold leading-snug text-[15px] group-hover:text-[var(--color-accent)] transition-colors line-clamp-3">
             {post.frontmatter.title}
           </h3>
         </Link>
