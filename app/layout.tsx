@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
+// Body — Inter (clean, highly legible, editorial-friendly)
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-const playfair = Playfair_Display({
+// Headlines — Space Grotesk (geometric, minimal, modern tech vibe)
+// Tight letter-spacing, strong weight contrast, deeply professional.
+const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["700", "800"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -49,7 +51,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} ${spaceGrotesk.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -63,7 +69,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body style={{ fontFamily: "var(--font-sans)" }}>
+      <body>
         <Header />
         {children}
         <Footer />

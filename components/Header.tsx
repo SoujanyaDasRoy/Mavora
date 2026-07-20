@@ -5,11 +5,37 @@ import { useEffect, useState } from 'react'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
 import { ThemeToggle } from './ThemeToggle'
 import { SearchBox } from './SearchBox'
+import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import { Separator } from '@/components/ui/separator'
+
+/* ── Minimal inline SVG icons (no icon library) ─────────────── */
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7.5" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  )
+}
+
+function MenuIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round">
+      <path d="M4 7h16M4 12h16M4 17h10" />
+    </svg>
+  )
+}
 
 export function Header() {
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const [scrolled, setScrolled]     = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4)
@@ -17,102 +43,152 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => {
-    if (!mobileOpen) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [mobileOpen])
+  const navLinks = [
+    { label: 'Home', href: '/' },
+    ...PILLARS.map((p) => ({ label: PILLAR_LABELS[p], href: `/${p}` })),
+    { label: 'Newsletter', href: '/#newsletter' },
+  ]
 
   return (
-    <header className={`sticky top-0 z-50 w-full bg-white dark:bg-[#3c3c3c] border-b border-[var(--color-border)] transition-shadow duration-200 ${scrolled ? 'shadow-sm' : ''}`}>
-      <div className="mx-auto max-w-[1280px] px-5 md:px-8 h-[60px] flex items-center justify-between gap-6">
+    <header
+      className={[
+        'sticky top-0 z-50 w-full bg-[var(--color-bg)] border-b border-[var(--color-border)]',
+        'transition-shadow duration-200',
+        scrolled ? 'shadow-sm' : '',
+      ].join(' ')}
+    >
+      <div className="mx-auto max-w-[1280px] px-5 md:px-8 h-[70px] grid grid-cols-[auto_1fr_auto] items-center gap-4">
 
-        {/* ── Logo ──────────────────────────────────────────────
-            The JPG logos have a solid background baked in.
-            We display them with object-fit:cover to crop to the
-            text area, and mix-blend-mode to dissolve the
-            background into the header colour:
-            • Light mode (white header): multiply
-            • Dark mode  (#3c3c3c header): screen           */}
+        {/* ── Logo ─────────────────────────────────────────── */}
         <Link href="/" className="shrink-0 flex items-center" aria-label="Mavora home">
-          {/* Light mode logo */}
+          {/*
+            Light mode strategy:
+              logo bg = #f2f2f2. Page bg = #E8E8E8.
+              brightness(1.1) pushes #f2f2f2 → white.
+              mix-blend-mode:multiply makes white invisible against ANY background.
+              Brand red #E8001C (R=232): 232×1.1=255(clip), 255×232/255=232 → preserves exactly.
+          */}
           <img
             src="/logo-light.jpg"
             alt="Mavora"
             className="block dark:hidden"
             style={{
-              width: '160px',
-              height: '44px',
+              width: '210px',
+              height: '60px',
               objectFit: 'cover',
               objectPosition: 'center 50%',
+              filter: 'brightness(1.1)',
               mixBlendMode: 'multiply',
             }}
           />
-          {/* Dark mode logo */}
+          {/*
+            Dark mode strategy:
+              logo bg = #3c3c3c == page bg = #3c3c3c.
+              Displayed normally — bg is naturally invisible, no blend trick needed.
+          */}
           <img
             src="/logo-dark.jpg"
             alt="Mavora"
             className="hidden dark:block"
             style={{
-              width: '160px',
-              height: '44px',
+              width: '210px',
+              height: '60px',
               objectFit: 'cover',
               objectPosition: 'center 50%',
-              mixBlendMode: 'screen',
             }}
           />
         </Link>
 
-        {/* ── Desktop Nav ───────────────────────────────────── */}
-        <nav className="hidden md:flex items-center gap-0.5 flex-1 justify-center" aria-label="Main navigation">
-          <Link href="/" className="px-3 py-2 text-sm font-medium text-[var(--color-fg)] dark:text-white hover:text-[var(--color-accent)] transition-colors">
-            Home
-          </Link>
-          {PILLARS.map((pillar) => (
+        {/* ── Desktop nav ──────────────────────────────────────── */}
+        <nav className="hidden md:flex items-center justify-center gap-1" aria-label="Main navigation">
+          {navLinks.map(({ label, href }) => (
             <Link
-              key={pillar}
-              href={`/${pillar}`}
-              className="px-3 py-2 text-sm font-medium text-[var(--color-fg)] dark:text-white hover:text-[var(--color-accent)] transition-colors"
+              key={href}
+              href={href}
+              className={[
+                'relative px-3 py-2 text-[13px] font-medium transition-colors',
+                'text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]',
+                'after:absolute after:bottom-1 after:left-3 after:right-3 after:h-[1.5px]',
+                'after:bg-[var(--color-fg-muted)] after:scale-x-0 after:origin-left',
+                'hover:after:scale-x-100 after:transition-transform after:duration-200',
+              ].join(' ')}
             >
-              {PILLAR_LABELS[pillar]}
+              {label}
             </Link>
           ))}
         </nav>
 
-        {/* ── Right controls ────────────────────────────────── */}
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
+        {/* ── Right controls ───────────────────────────────── */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          {/* Search toggle */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={() => setSearchOpen((v) => !v)}
             aria-label="Toggle search"
             aria-expanded={searchOpen}
-            className="p-2 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            className="text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] hover:bg-transparent"
           >
-            <svg className="w-4 h-4 text-[var(--color-fg)] dark:text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
-          </button>
+            <SearchIcon />
+          </Button>
+
+          {/* Theme toggle */}
           <ThemeToggle />
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            className="md:hidden p-2 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((v) => !v)}
-          >
-            {mobileOpen ? (
-              <svg className="w-5 h-5 text-[var(--color-fg)] dark:text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 text-[var(--color-fg)] dark:text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-          </button>
+
+          {/* Mobile menu — shadcn Sheet */}
+          <Sheet>
+            <SheetTrigger
+              className={[
+                'md:hidden inline-flex items-center justify-center size-7 rounded-md',
+                'text-[var(--color-fg)] hover:text-[var(--color-accent)]',
+                'hover:bg-[var(--color-bg-secondary)] transition-colors',
+              ].join(' ')}
+              aria-label="Open menu"
+            >
+              <MenuIcon />
+            </SheetTrigger>
+
+            <SheetContent
+              side="right"
+              showCloseButton
+              className="w-[280px] bg-[var(--color-bg)] border-[var(--color-border)] pt-10 px-0"
+            >
+              <SheetHeader className="px-5 pb-3">
+                <SheetTitle className="text-left">
+                  <img
+                    src="/logo-light.jpg"
+                    alt="Mavora"
+                    className="block dark:hidden"
+                    style={{ width: '100px', height: '28px', objectFit: 'cover', objectPosition: 'center 50%', mixBlendMode: 'multiply' }}
+                  />
+                  <img
+                    src="/logo-dark.jpg"
+                    alt="Mavora"
+                    className="hidden dark:block"
+                    style={{ width: '100px', height: '28px', objectFit: 'cover', objectPosition: 'center 50%', mixBlendMode: 'screen' }}
+                  />
+                </SheetTitle>
+              </SheetHeader>
+
+              <Separator className="bg-[var(--color-border)]" />
+
+              <nav className="flex flex-col px-4 pt-3 gap-0.5" aria-label="Mobile navigation">
+                {navLinks.map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={[
+                      'w-full py-2.5 px-3 rounded-md text-sm font-medium transition-colors',
+                      'text-[var(--color-fg)] hover:text-[var(--color-accent)]',
+                      'hover:bg-[var(--color-bg-secondary)]',
+                    ].join(' ')}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
@@ -121,28 +197,6 @@ export function Header() {
         <div className="border-t border-[var(--color-border)] px-5 md:px-8 py-3 bg-[var(--color-bg-secondary)]">
           <SearchBox onClose={() => setSearchOpen(false)} />
         </div>
-      )}
-
-      {/* ── Mobile drawer ─────────────────────────────────── */}
-      {mobileOpen && (
-        <nav
-          className="md:hidden border-t border-[var(--color-border)] bg-white dark:bg-[#3c3c3c] px-5 py-4 flex flex-col gap-1"
-          aria-label="Mobile navigation"
-        >
-          <Link href="/" onClick={() => setMobileOpen(false)} className="py-2 px-3 rounded font-medium dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-            Home
-          </Link>
-          {PILLARS.map((pillar) => (
-            <Link
-              key={pillar}
-              href={`/${pillar}`}
-              onClick={() => setMobileOpen(false)}
-              className="py-2 px-3 rounded font-medium dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-            >
-              {PILLAR_LABELS[pillar]}
-            </Link>
-          ))}
-        </nav>
       )}
     </header>
   )

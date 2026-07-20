@@ -11,9 +11,19 @@ export function Footer() {
 
           {/* Brand column */}
           <div className="md:col-span-1">
-            {/* Logo — swaps between light/dark variants via CSS */}
-            <img src="/logo-light.jpg" alt="Mavora" className="h-7 w-auto mb-3 block dark:hidden" />
-            <img src="/logo-dark.jpg"  alt="Mavora" className="h-7 w-auto mb-3 hidden dark:block" />
+            {/* Logo — blend mode makes the jpg bg invisible on both themes */}
+            <img
+              src="/logo-light.jpg"
+              alt="Mavora"
+              className="h-8 w-auto mb-3 block dark:hidden"
+              style={{ mixBlendMode: 'multiply' }}
+            />
+            <img
+              src="/logo-dark.jpg"
+              alt="Mavora"
+              className="h-8 w-auto mb-3 hidden dark:block"
+              style={{ mixBlendMode: 'screen' }}
+            />
             <p className="text-sm text-[var(--color-fg-muted)] leading-relaxed">
               Knowledge for the ambitious. AI, technology, productivity, and business — curated weekly.
             </p>
