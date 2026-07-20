@@ -81,7 +81,7 @@ export default async function ArticlePage({
                 {label}
               </Badge>
             </Link>
-            <h1 className="font-display font-bold text-[2rem] md:text-[2.75rem] leading-[1.08] tracking-[-0.02em] mt-3 mb-4">
+            <h1 className="font-article font-semibold text-[2.25rem] md:text-[3.1rem] leading-[1.08] tracking-[-0.01em] mt-3 mb-4">
               {post.frontmatter.title}
             </h1>
             <div className="flex items-center gap-2 text-[13px] text-[var(--color-fg-muted)]">
@@ -110,7 +110,7 @@ export default async function ArticlePage({
 
             <Separator className="bg-[var(--color-border)] mt-8" />
           </div>
-          <div className="prose dark:prose-invert max-w-none prose-a:text-[var(--color-accent)]">
+          <div className="prose dark:prose-invert max-w-none prose-a:text-[var(--color-accent)] prose-headings:font-[family-name:var(--font-article)] prose-headings:font-semibold prose-headings:tracking-[-0.01em]">
             <MDXRemote source={post.content} components={{ YouTubeEmbed, TwitterEmbed }} />
           </div>
         </article>
