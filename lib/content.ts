@@ -17,6 +17,7 @@ export const frontmatterSchema = z.object({
   publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   draft: z.boolean().default(false),
   ogImage: z.string().optional(),
+  author: z.string().optional(),
 })
 
 export type Frontmatter = z.infer<typeof frontmatterSchema>
