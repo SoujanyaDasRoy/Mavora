@@ -87,24 +87,18 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
 
             return (
               <RevealSection className="mb-9" delay={0.05}>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {featured.map((post, idx) => (
                     <article
                       key={`${post.pillar}-${post.slug}`}
-                      className={cn(
-                        "group flex flex-col gap-3",
-                        idx === 0 ? "col-span-2 md:col-span-2" : "col-span-1 md:col-span-1"
-                      )}
+                      className="group flex flex-col gap-3"
                     >
                       {post.frontmatter.ogImage && (
                         <Link
                           href={`/${post.pillar}/${post.slug}`}
                           aria-hidden="true"
                           tabIndex={-1}
-                          className={cn(
-                            "block overflow-hidden rounded-lg w-full relative",
-                            idx === 0 ? "aspect-[16/9]" : "aspect-square"
-                          )}
+                          className="block overflow-hidden rounded-lg w-full relative aspect-[3/2]"
                         >
                           <img
                             src={post.frontmatter.ogImage}
@@ -119,12 +113,7 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
                         </div>
                         <Link href={`/${post.pillar}/${post.slug}`}>
                           <h3
-                            className={cn(
-                              "font-article font-semibold leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-3",
-                              idx === 0
-                                ? "text-[1.15rem] sm:text-[1.25rem] md:text-[1.35rem]"
-                                : "text-[0.98rem] sm:text-[1.05rem]"
-                            )}
+                            className="font-article font-semibold leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-3 text-[1.05rem] sm:text-[1.15rem]"
                           >
                             {post.frontmatter.title}
                           </h3>

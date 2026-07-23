@@ -94,3 +94,13 @@
 - [x] Update overlay right discovery panel to replace static "Trending Stories" with category pills displaying total counts.
 - [x] Remove redundant eyebrow labels and adjust overlay input text size to `text-2xl md:text-3xl font-bold` for clean visual balance and responsiveness.
 - [x] Verify compilation of the project runs successfully without any warnings or errors.
+
+## Featured Section 3-column Layout
+
+- [x] Locate the Featured Section layout block in `components/InteractiveArticleFeed.tsx`.
+- [x] Change the grid class from `grid grid-cols-2 md:grid-cols-4 gap-6` to a uniform `grid grid-cols-1 md:grid-cols-3 gap-8`.
+- [x] Remove the conditional `col-span` on the article element to make all articles have uniform width.
+- [x] Set a uniform aspect ratio of `aspect-[3/2]` on all featured card image containers.
+- [x] Unify heading text size to `text-[1.05rem] sm:text-[1.15rem]`.
+- [x] Update `task.md` to check off completed tasks.
+- [x] Verify compilation of the project runs successfully without any warnings or errors.
