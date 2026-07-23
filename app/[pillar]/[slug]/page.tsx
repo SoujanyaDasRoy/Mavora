@@ -70,9 +70,12 @@ export default async function ArticlePage({
     year: 'numeric',
   })
 
-  const otherPosts = getPostsByPillar(post.pillar)
-    .filter((p) => p.slug !== slug)
-    .slice(0, 3)
+  const pillarPosts = getPostsByPillar(post.pillar).filter((p) => p.slug !== slug)
+  let otherPosts = [...pillarPosts]
+  if (otherPosts.length < 3) {
+    const backupPosts = getAllPosts().filter((p) => p.slug !== slug && p.pillar !== post.pillar)
+    otherPosts = [...otherPosts, ...backupPosts].slice(0, 3)
+  }
 
   return (
     <main>
@@ -121,18 +124,20 @@ export default async function ArticlePage({
             <MDXRemote source={post.content} components={{ YouTubeEmbed, TwitterEmbed }} />
           </div>
         </article>
+      </Container>
 
-        {otherPosts.length > 0 && (
-          <div className="mt-12 pt-12 border-t border-[var(--color-border)]">
-            <h2 className="font-article font-semibold text-2xl mb-6">Read Next</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      {otherPosts.length > 0 && (
+        <div className="border-t border-[var(--color-border)] bg-[var(--color-bg-secondary)]/10 py-12 md:py-16">
+          <Container>
+            <h2 className="font-article font-semibold text-2xl mb-8">Read Next</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
               {otherPosts.map((otherPost) => (
                 <ArticleCard key={otherPost.slug} post={otherPost} variant="grid" />
               ))}
             </div>
-          </div>
-        )}
-      </Container>
+          </Container>
+        </div>
+      )}
     </main>
   )
 }
