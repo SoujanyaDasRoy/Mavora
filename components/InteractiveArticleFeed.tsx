@@ -258,6 +258,15 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
           )}
         </>
       )}
+
+      <div className="flex justify-center mt-12">
+        <Link
+          href="/search"
+          className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-[var(--color-border-strong)] hover:border-[var(--color-accent)] text-xs uppercase tracking-widest font-bold text-[var(--color-fg-muted)] hover:text-[var(--color-accent)] bg-transparent transition-all hover:scale-[1.01] active:scale-[0.98] duration-200"
+        >
+          Browse All Articles →
+        </Link>
+      </div>
     </div>
   )
 }
