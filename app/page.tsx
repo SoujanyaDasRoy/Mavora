@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { estimateReadingTime } from '@/lib/readingTime'
 import InteractiveArticleFeed from '@/components/InteractiveArticleFeed'
+import { TopStoriesCarousel } from '@/components/TopStoriesCarousel'
 
 // ─── Date label ────────────────────────────────────────────────
 function DateLabel({ date }: { date: string }) {
@@ -27,8 +28,8 @@ function DateLabel({ date }: { date: string }) {
 export default function HomePage() {
   const posts = getAllPosts()
 
-  const hero = posts[0]
-  const rest = posts.slice(1)
+  const topStories = posts.slice(0, 3)
+  const rest = posts.slice(3)
   const latestNews = rest.slice(0, 3)
   const feedPosts = rest.slice(3)
   const popularPosts = posts.slice(0, 3)
@@ -41,73 +42,11 @@ export default function HomePage() {
         {/* ── LEFT ────────────────────────────────────────────── */}
         <div className="min-w-0">
 
-          {/* TOP STORY */}
-          {hero && (
+          {/* TOP STORIES */}
+          {topStories.length > 0 && (
             <RevealSection className="mb-8">
-              <SectionLabel>Top Story</SectionLabel>
-
-              <div className="relative w-full h-[300px] sm:h-[380px] md:h-[440px] rounded-xl overflow-hidden group flex items-end">
-                {hero.frontmatter.ogImage && (
-                  <img
-                    src={hero.frontmatter.ogImage}
-                    alt={hero.frontmatter.title}
-                    className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
-                  />
-                )}
-                
-                {/* Dark gradient overlay for contrast and readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
-
-                {/* Content Overlay */}
-                <div className="relative z-10 p-5 sm:p-6 md:p-8 w-full flex flex-col gap-2">
-                  <div>
-                    <Badge
-                      className="border-none bg-[var(--color-accent)] hover:bg-[var(--color-accent)] text-white text-[9px] font-semibold uppercase tracking-widest rounded-[3px] px-1.5 py-0.5 h-auto leading-[1.6]"
-                    >
-                      {PILLAR_LABELS[hero.pillar as keyof typeof PILLAR_LABELS] ?? hero.pillar}
-                    </Badge>
-                  </div>
-                  
-                  <Link href={`/${hero.pillar}/${hero.slug}`} className="block max-w-4xl">
-                    <h2 className="font-article font-bold text-white text-[1.8rem] sm:text-[2.2rem] md:text-[2.8rem] leading-[1.1] tracking-[-0.01em] hover:text-neutral-200 transition-colors">
-                      {hero.frontmatter.title}
-                    </h2>
-                  </Link>
-
-                  <p className="text-[13px] text-white/80 max-w-2xl leading-[1.6] line-clamp-1 sm:line-clamp-2">
-                    {hero.frontmatter.description}
-                  </p>
-
-                  <div className="flex flex-wrap items-center justify-between gap-4 mt-2 pt-2 border-t border-white/10">
-                    <div className="flex items-center gap-2 text-[11px] text-white/60">
-                      {hero.frontmatter.author && (
-                        <>
-                          <span className="font-medium text-white/80">
-                            {hero.frontmatter.author}
-                          </span>
-                          <span className="text-white/40">·</span>
-                        </>
-                      )}
-                      <time dateTime={hero.frontmatter.publishedAt} className="tabular-nums">
-                        {new Date(hero.frontmatter.publishedAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </time>
-                      <span className="text-white/40">·</span>
-                      <span>{estimateReadingTime(hero.content)} min read</span>
-                    </div>
-
-                    <Link
-                      href={`/${hero.pillar}/${hero.slug}`}
-                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-white bg-white/20 hover:bg-white/30 backdrop-blur transition-all"
-                    >
-                      Read Article →
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <SectionLabel>Top Stories</SectionLabel>
+              <TopStoriesCarousel posts={topStories} />
             </RevealSection>
           )}
 
