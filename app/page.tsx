@@ -142,7 +142,7 @@ export default function HomePage() {
                     )}
                     <div className="min-w-0 flex flex-col gap-1">
                       <Link href={`/${post.pillar}/${post.slug}`}>
-                        <p className="font-article text-[13.5px] font-semibold leading-[1.3] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3">
+                        <p className="font-article text-[13.5px] font-semibold leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-3">
                           {post.frontmatter.title}
                         </p>
                       </Link>
@@ -192,34 +192,6 @@ export default function HomePage() {
               Join thousands of students, founders, and professionals who get weekly insights
               on AI, technology, productivity, and business.
             </p>
-
-            {/* 3-column benefits block */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto my-8 text-left">
-              <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
-                <h4 className="font-semibold text-[13px] mb-1 text-[var(--color-fg)] flex items-center gap-1.5">
-                  <span className="text-[var(--color-accent)]">✦</span> AI & Automation
-                </h4>
-                <p className="text-[11.5px] text-[var(--color-fg-muted)] leading-relaxed">
-                  Understand how artificial intelligence is reshaping tools, roles, and software workflows.
-                </p>
-              </div>
-              <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
-                <h4 className="font-semibold text-[13px] mb-1 text-[var(--color-fg)] flex items-center gap-1.5">
-                  <span className="text-[var(--color-accent)]">✦</span> SaaS & Tech
-                </h4>
-                <p className="text-[11.5px] text-[var(--color-fg-muted)] leading-relaxed">
-                  Learn engineering best practices, architectural choices, and scaling strategies for SaaS.
-                </p>
-              </div>
-              <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
-                <h4 className="font-semibold text-[13px] mb-1 text-[var(--color-fg)] flex items-center gap-1.5">
-                  <span className="text-[var(--color-accent)]">✦</span> Smart Productivity
-                </h4>
-                <p className="text-[11.5px] text-[var(--color-fg-muted)] leading-relaxed">
-                  Optimize your personal system, improve focus, and master high-leverage work habits.
-                </p>
-              </div>
-            </div>
 
             <form
               className="flex flex-col sm:flex-row gap-2.5 max-w-[380px] mx-auto"

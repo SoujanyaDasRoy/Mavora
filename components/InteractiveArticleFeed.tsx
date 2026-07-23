@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils'
 import { estimateReadingTime } from '@/lib/readingTime'
 import { MessageSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { SectionLabel } from '@/components/SectionLabel'
 import { Separator } from '@/components/ui/separator'
 import { RevealSection } from '@/components/RevealSection'
 import type { Post } from '@/lib/content'
@@ -59,7 +58,7 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
   return (
     <div className="flex flex-col gap-6">
       {/* Horizontal Tabs List */}
-      <div className="flex flex-wrap items-center gap-2 mb-4 border-b border-[var(--color-border)] pb-4">
+      <div className="flex items-center gap-6 mb-6 border-b border-[var(--color-border)] overflow-x-auto scrollbar-none">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id
           return (
@@ -67,10 +66,10 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-md border transition-all duration-200",
+                "pb-3 border-b-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 -mb-[1px] whitespace-nowrap",
                 isActive
-                  ? "bg-[var(--color-fg)] border-[var(--color-fg)] text-[var(--color-bg)] shadow-sm"
-                  : "bg-[var(--color-bg-secondary)] border-[var(--color-border)] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] hover:border-[var(--color-fg-subtle)]"
+                  ? "border-[var(--color-accent)] text-[var(--color-fg)]"
+                  : "border-transparent text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
               )}
             >
               {tab.label}
@@ -88,8 +87,6 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
 
             return (
               <RevealSection className="mb-9" delay={0.05}>
-                <SectionLabel>Featured</SectionLabel>
-
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {featured.map((post, idx) => (
                     <article
@@ -123,7 +120,7 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
                         <Link href={`/${post.pillar}/${post.slug}`}>
                           <h3
                             className={cn(
-                              "font-article font-semibold leading-[1.3] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3",
+                              "font-article font-semibold leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-3",
                               idx === 0
                                 ? "text-[1.15rem] sm:text-[1.25rem] md:text-[1.35rem]"
                                 : "text-[0.98rem] sm:text-[1.05rem]"
@@ -165,8 +162,6 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
 
             return (
               <RevealSection delay={0.1}>
-                <SectionLabel>Latest Articles</SectionLabel>
-
                 <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
                   {latest.map((post) => (
                     <article key={`${post.pillar}-${post.slug}`} className="group flex gap-3.5 items-start">
@@ -187,7 +182,7 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
                       <div className="min-w-0 flex flex-col gap-1.5">
                         <PillarTag pillar={post.pillar} />
                         <Link href={`/${post.pillar}/${post.slug}`}>
-                          <h3 className="font-article font-semibold text-[0.95rem] leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-2">
+                          <h3 className="font-article font-semibold text-[0.95rem] leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
                             {post.frontmatter.title}
                           </h3>
                         </Link>
@@ -208,9 +203,6 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
         <>
           {filteredPosts.length > 0 ? (
             <RevealSection delay={0.05}>
-              <SectionLabel>
-                {PILLAR_LABELS[activeTab as Pillar] ?? activeTab}
-              </SectionLabel>
               <div className="grid sm:grid-cols-2 gap-x-8 gap-y-6">
                 {filteredPosts.map((post) => (
                   <article
@@ -236,7 +228,7 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
                         <PillarTag pillar={post.pillar} />
                       </div>
                       <Link href={`/${post.pillar}/${post.slug}`}>
-                        <h3 className="font-article font-semibold text-[1.15rem] leading-[1.3] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-2">
+                        <h3 className="font-article font-semibold text-[1.15rem] leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
                           {post.frontmatter.title}
                         </h3>
                       </Link>

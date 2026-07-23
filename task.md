@@ -63,4 +63,13 @@
 - [x] Update `task.md` to track completed tasks.
 - [x] Verify project compilation and type-safety.
 
+## Landing Page Redesign
 
+- [x] Swap out the font token `--font-article` to `"Playfair Display", Georgia, serif` in `app/globals.css`.
+- [x] Redesign category switcher tabs in `components/InteractiveArticleFeed.tsx` to clean, editorial underline tabs and remove wrap button border boxes.
+- [x] Remove redundant SectionLabel renders ("Featured", "Latest Articles", etc.) inside the feed in `components/InteractiveArticleFeed.tsx`.
+- [x] Remove box borders for article lists/cards, using spacing/dividers.
+- [x] Update hover states for article titles to Mavora Red (`hover:text-[var(--color-accent)]`) in `components/InteractiveArticleFeed.tsx`.
+- [x] Change sidebar latest news items title hover color to `hover:text-[var(--color-accent)]` in `app/page.tsx`.
+- [x] Simplify newsletter section by removing the 3-column benefits block in `app/page.tsx`.
+- [x] Verify compilation and update checklist.
