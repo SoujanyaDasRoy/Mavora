@@ -81,8 +81,8 @@ export function TopStoriesCarousel({ posts }: TopStoriesCarouselProps) {
           animate="center"
           exit="exit"
           transition={{
-            x: { type: 'spring', stiffness: 500, damping: 40 },
-            opacity: { duration: 0.2 }
+            x: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.3 },
+            opacity: { duration: 0.15 }
           }}
           className="absolute inset-0 w-full h-full"
         >
