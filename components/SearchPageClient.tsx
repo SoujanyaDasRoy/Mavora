@@ -87,7 +87,7 @@ export function SearchPageClient({ posts }: { posts: Post[] }) {
             router.push('/search?q=' + encodeURIComponent(newVal))
           }}
           placeholder="Search articles..."
-          className="flex-1 bg-transparent outline-none text-base text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] border-none focus:ring-0 p-0"
+          className="flex-1 bg-transparent border-0 border-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 p-0 text-base text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)]"
         />
       </div>
 

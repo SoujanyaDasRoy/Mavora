@@ -1,12 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
 import { ThemeToggle } from './ThemeToggle'
-import { SearchBox } from './SearchBox'
-import { Search, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -27,10 +25,7 @@ function MenuIcon({ className }: { className?: string }) {
 }
 
 export function Header() {
-  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4)
@@ -52,17 +47,10 @@ export function Header() {
       ].join(' ')}
     >
       <Container
-        className="relative h-[70px] grid grid-cols-[auto_1fr_auto] md:grid-cols-[220px_1fr_220px] items-center gap-4"
+        className="h-[70px] grid grid-cols-[auto_1fr_auto] md:grid-cols-[220px_1fr_220px] items-center gap-4"
       >
         {/* ── Logo ─────────────────────────────────────────── */}
-        <Link
-          href="/"
-          className={[
-            'shrink-0 items-center',
-            searchOpen ? 'hidden md:flex' : 'flex',
-          ].join(' ')}
-          aria-label="Mavora home"
-        >
+        <Link href="/" className="shrink-0 flex items-center" aria-label="Mavora home">
           <img
             src="/logo.png"
             alt="Mavora"
@@ -70,78 +58,35 @@ export function Header() {
           />
         </Link>
 
-        {/* ── Search Input / Desktop nav ────────────────────── */}
-        {searchOpen ? (
-          <div className="relative col-span-1 md:max-w-md mx-auto w-full">
-            <div className="flex items-center h-10 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-full px-3 transition-all duration-300">
-              <Search className="size-4 text-[var(--color-fg-muted)] mr-2 shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    router.push('/search?q=' + encodeURIComponent(searchQuery))
-                    setSearchOpen(false)
-                    setSearchQuery('')
-                  }
-                }}
-                placeholder="Search articles, topics..."
-                className="flex-1 bg-transparent outline-none text-sm text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] border-none focus:ring-0 p-0"
-                autoFocus
-              />
-              <button
-                onClick={() => {
-                  setSearchOpen(false)
-                  setSearchQuery('')
-                }}
-                className="p-1 rounded-full hover:bg-[var(--color-bg-tertiary)] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] transition-colors shrink-0"
-                aria-label="Close search"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <SearchBox
-              isOpen={searchOpen}
-              query={searchQuery}
-              onClose={() => {
-                setSearchOpen(false)
-                setSearchQuery('')
-              }}
-            />
-          </div>
-        ) : (
-          <nav className="hidden md:flex items-center justify-center gap-1.5" aria-label="Main navigation">
-            {navLinks.map(({ label, href }) => (
-              <Link
-                key={href}
-                href={href}
-                className={[
-                  'relative px-3.5 py-2.5 text-[14px] font-medium transition-colors',
-                  'text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]',
-                  'after:absolute after:bottom-1 after:left-3.5 after:right-3.5 after:h-[1.5px]',
-                  'after:bg-[var(--color-fg-muted)] after:scale-x-0 after:origin-left',
-                  'hover:after:scale-x-100 after:transition-transform after:duration-200',
-                ].join(' ')}
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        {/* ── Desktop nav ──────────────────────────────────────── */}
+        <nav className="hidden md:flex items-center justify-center gap-1.5" aria-label="Main navigation">
+          {navLinks.map(({ label, href }) => (
+            <Link
+              key={href}
+              href={href}
+              className={[
+                'relative px-3.5 py-2.5 text-[14px] font-medium transition-colors',
+                'text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]',
+                'after:absolute after:bottom-1 after:left-3.5 after:right-3.5 after:h-[1.5px]',
+                'after:bg-[var(--color-fg-muted)] after:scale-x-0 after:origin-left',
+                'hover:after:scale-x-100 after:transition-transform after:duration-200',
+              ].join(' ')}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
 
         {/* ── Right controls ───────────────────────────────── */}
-        <div className="flex items-center justify-end gap-2 shrink-0 md:w-full">
+        <div className="flex items-center justify-end gap-2 shrink-0 w-full">
           {/* Search Button */}
-          {!searchOpen && (
-            <button
-              onClick={() => setSearchOpen(true)}
-              aria-label="Search articles"
-              className="flex items-center justify-center size-9 hover:bg-[var(--color-bg-secondary)] rounded-full text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] outline-none transition-colors"
-            >
-              <Search className="size-4" />
-            </button>
-          )}
+          <Link
+            href="/search"
+            aria-label="Search articles"
+            className="flex items-center justify-center size-9 hover:bg-[var(--color-bg-secondary)] rounded-full text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] outline-none transition-colors"
+          >
+            <Search className="size-4" />
+          </Link>
 
           {/* Theme toggle */}
           <ThemeToggle />
