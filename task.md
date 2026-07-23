@@ -122,4 +122,16 @@
 - [x] Run `npm run build` to verify compilation completes successfully with no warnings.
 - [x] Update `task.md` to check off completed tasks.
 
+## Inline Expanding Header Search Bar with Floating Popover Redesign
+
+- [x] Set up client-side states `searchOpen` and `searchQuery` in `components/Header.tsx`.
+- [x] When `searchOpen` is true, render a beautiful search input bar in the center of the header container (occupying the space of the navigation menu items on desktop or covering the center on mobile).
+- [x] Embed `<SearchBox>` absolute directly below the search input container so it floats under the header.
+- [x] Convert `SearchBox` into a floating dropdown popover.
+- [x] Remove duplicate search input code, search icon, and close button from inside `SearchBox.tsx`.
+- [x] Use the `query` prop passed from `Header.tsx` as the search term.
+- [x] Implement click-outside detection to collapse the search.
+- [x] Remove background body overflow-hidden toggle.
+- [x] Verify Next.js compilation succeeds with no warnings or errors.
+
 

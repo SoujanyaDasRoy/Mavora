@@ -148,6 +148,7 @@ export function SearchBox({
   const [internalActiveIndex, setInternalActiveIndex] = useState(0)
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+  const searchBoxRef = useRef<HTMLDivElement>(null)
 
   const shouldFetch = inline || isOpen
 
@@ -212,40 +213,57 @@ export function SearchBox({
     setInternalActiveIndex(0)
   }, [query])
 
-  // Prevent background scrolling when overlay is open
+  // Focus input on mount / open (only for inline mode since input is inside SearchBox)
   useEffect(() => {
-    if (isOpen) {
-      document.body.classList.add('overflow-hidden')
-    } else {
-      document.body.classList.remove('overflow-hidden')
-    }
-    return () => {
-      document.body.classList.remove('overflow-hidden')
-    }
-  }, [isOpen])
-
-  // Focus input on mount / open
-  useEffect(() => {
-    if (inline || isOpen) {
+    if (inline) {
       const timer = setTimeout(() => {
         inputRef.current?.focus()
       }, 50)
       return () => clearTimeout(timer)
     }
-  }, [inline, isOpen])
+  }, [inline])
 
-  // Global key listener for Escape when open
+  // Global key listener when open
   useEffect(() => {
     if (!isOpen) return
 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setActiveIndex(Math.min(activeIndex + 1, results.length - 1))
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setActiveIndex(Math.max(activeIndex - 1, 0))
+      } else if (e.key === 'Enter') {
+        if (results[activeIndex]) {
+          e.preventDefault()
+          handleSelect(results[activeIndex])
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
         onClose?.()
       }
     }
 
     window.addEventListener('keydown', handleGlobalKeyDown)
     return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [isOpen, activeIndex, results, onClose])
+
+  // Click outside detection to close the popover
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (searchBoxRef.current && !searchBoxRef.current.parentElement?.contains(target)) {
+        onClose?.()
+      }
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+    }
   }, [isOpen, onClose])
 
   const handleSelect = (entry: SearchEntry) => {
@@ -278,122 +296,6 @@ export function SearchBox({
 
   // If not inline and not open, don't render anything
   if (!inline && !isOpen) return null
-
-  // 1. Full-screen overlay takeover view
-  if (isOpen) {
-    return (
-      <div className="fixed inset-0 z-50 bg-[var(--color-bg)]/98 backdrop-blur-md overflow-y-auto animate-fade-in">
-        <div className="max-w-6xl mx-auto px-6 py-12 md:py-20 w-full min-h-screen flex flex-col justify-start animate-slide-up">
-          {/* Top layout: Giant input and close button */}
-          <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-6 md:pb-8 gap-6">
-            <div className="flex-1 flex items-center gap-4">
-              <Search className="size-8 md:size-10 text-[var(--color-fg-subtle)] shrink-0" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => {
-                  setInternalQuery(e.target.value)
-                  setInternalActiveIndex(0)
-                }}
-                onKeyDown={handleKeyDown}
-                placeholder="Search articles, topics..."
-                className="w-full bg-transparent outline-none text-2xl md:text-3xl font-bold text-[var(--color-fg)] placeholder:text-[var(--color-fg-subtle)] border-none focus:ring-0 p-0"
-              />
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 md:p-3 rounded-full hover:bg-[var(--color-bg-secondary)] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] transition-all duration-200"
-              aria-label="Close search"
-            >
-              <X className="size-8 md:size-10" />
-            </button>
-          </div>
-
-          {/* Body layout: Split Grid */}
-          <div className="grid md:grid-cols-[1fr_320px] gap-12 mt-12">
-            {/* Left side: Results */}
-            <div className="min-w-0">
-              {!query.trim() ? (
-                <div className="py-12 text-left">
-                  <h4 className="text-xl font-bold text-[var(--color-fg-muted)] mb-3 font-display">Search Mavora</h4>
-                  <p className="text-[var(--color-fg-subtle)] text-base max-w-md">
-                    Type your search query to find articles across artificial intelligence, technology, productivity, and business.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-6">
-                  {status === 'loading' && (
-                    <div className="flex flex-col gap-6 w-full animate-pulse">
-                      {[1, 2, 3].map((n) => (
-                        <div
-                          key={n}
-                          className="w-full flex flex-col gap-3 rounded-2xl p-6 border border-[var(--color-border)]/40 bg-[var(--color-bg-secondary)]/20"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-5 w-20 bg-[var(--color-border)]/60 rounded" />
-                            <div className="h-4 w-16 bg-[var(--color-border)]/40 rounded" />
-                          </div>
-                          <div className="h-7 w-3/4 bg-[var(--color-border)]/60 rounded mt-1" />
-                          <div className="h-4 w-5/6 bg-[var(--color-border)]/40 rounded" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {status === 'error' && (
-                    <p className="text-[var(--color-fg-muted)] text-lg py-12">
-                      Search is temporarily unavailable — please try again later.
-                    </p>
-                  )}
-                  {status === 'ready' && results.length === 0 && (
-                    <p className="text-[var(--color-fg-muted)] text-lg py-12">
-                      No results found for &quot;<span className="text-[var(--color-fg)] font-medium">{query}</span>&quot;.
-                    </p>
-                  )}
-                  {status === 'ready' &&
-                    results.map((entry, i) => (
-                      <SearchResultItem
-                        key={`${entry.pillar}-${entry.slug}`}
-                        entry={entry}
-                        isActive={i === activeIndex}
-                        onClick={() => handleSelect(entry)}
-                        onMouseEnter={() => setActiveIndex(i)}
-                        query={query}
-                        variant="overlay"
-                      />
-                    ))}
-                </div>
-              )}
-            </div>
-
-            {/* Right side: Discovery */}
-            <div className="flex flex-col gap-6 border-t md:border-t-0 md:border-l border-[var(--color-border)] pt-10 md:pt-0 md:pl-10">
-              <div className="flex flex-wrap gap-2.5">
-                {PILLARS.map((pillar) => {
-                  const count = index.filter((p) => p.pillar === pillar).length
-                  return (
-                    <button
-                      key={pillar}
-                      onClick={() => {
-                        onClose?.()
-                        router.push(`/${pillar}`)
-                      }}
-                      className="px-4 py-2 rounded-full text-sm font-medium bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-fg)] transition-all hover:scale-[1.03] duration-150 flex items-center gap-2"
-                    >
-                      <span>{PILLAR_LABELS[pillar]}</span>
-                      <span className="text-xs text-[var(--color-fg-muted)] font-normal px-1.5 py-0.5 rounded-full bg-[var(--color-bg)] border border-[var(--color-border)]">
-                        {count}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   // 2. Compact Inline search view (used in /search page)
   const listContent = (
@@ -486,6 +388,18 @@ export function SearchBox({
       )}
     </>
   )
+
+  // 1. Floating dropdown popover view
+  if (isOpen) {
+    return (
+      <div
+        ref={searchBoxRef}
+        className="absolute top-full right-0 mt-2.5 w-full sm:w-[460px] bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-2xl shadow-xl z-50 max-h-[60vh] overflow-y-auto"
+      >
+        {listContent}
+      </div>
+    )
+  }
 
   return (
     <div className="w-full flex flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] shadow-lg animate-fade-in">
