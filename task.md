@@ -104,3 +104,12 @@
 - [x] Unify heading text size to `text-[1.05rem] sm:text-[1.15rem]`.
 - [x] Update `task.md` to check off completed tasks.
 - [x] Verify compilation of the project runs successfully without any warnings or errors.
+
+## Refine Category-Specific Pillar Layouts
+
+- [x] Locate the specific pillar rendering block (inside the `else` condition of `activeTab === 'all'`) in `components/InteractiveArticleFeed.tsx`.
+- [x] Remove the redundant category tag rendering: Remove `<PillarTag pillar={post.pillar} />` or make its rendering conditional on `activeTab === 'all'`.
+- [x] Change the image container aspect ratio from `aspect-[16/9]` to a uniform `aspect-[3/2]`.
+- [x] Run `npm run build` to verify compilation completes successfully with no warnings.
+- [x] Update `task.md` to check off completed tasks.
+

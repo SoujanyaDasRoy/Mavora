@@ -203,7 +203,7 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
                         href={`/${post.pillar}/${post.slug}`}
                         aria-hidden="true"
                         tabIndex={-1}
-                        className="block overflow-hidden rounded-lg aspect-[16/9] w-full relative"
+                        className="block overflow-hidden rounded-lg aspect-[3/2] w-full relative"
                       >
                         <img
                           src={post.frontmatter.ogImage}
@@ -213,9 +213,6 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
                       </Link>
                     )}
                     <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                      <div>
-                        <PillarTag pillar={post.pillar} />
-                      </div>
                       <Link href={`/${post.pillar}/${post.slug}`}>
                         <h3 className="font-article font-semibold text-[1.15rem] leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
                           {post.frontmatter.title}
