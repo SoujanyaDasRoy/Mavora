@@ -113,3 +113,13 @@
 - [x] Run `npm run build` to verify compilation completes successfully with no warnings.
 - [x] Update `task.md` to check off completed tasks.
 
+## Latest Articles Single-Column Editorial Row Layout Redesign
+
+- [x] Locate the Latest Articles section inside the `activeTab === 'all'` block in `components/InteractiveArticleFeed.tsx`.
+- [x] Change the layout from a 2-column grid to a vertical flex container layout.
+- [x] Redesign the article content hierarchy inside each row: set image wrapper with responsive size & 3:2 landscape ratio, flex-1 text wrapper, above-title metadata, font-bold custom h3 leading, and clean description line clamp.
+- [x] Remove the old `<PillarTag>` rendering and duplicate `<DateLabel>` at the bottom of the card content.
+- [x] Run `npm run build` to verify compilation completes successfully with no warnings.
+- [x] Update `task.md` to check off completed tasks.
+
+

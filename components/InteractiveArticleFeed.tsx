@@ -151,34 +151,37 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
 
             return (
               <RevealSection delay={0.1}>
-                <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
+                <div className="flex flex-col">
                   {latest.map((post) => (
-                    <article key={`${post.pillar}-${post.slug}`} className="group flex gap-3.5 items-start">
+                    <article key={`${post.pillar}-${post.slug}`} className="group flex gap-6 py-6 border-b border-[var(--color-border)]/40 last:border-b-0 last:pb-0 first:pt-0">
                       {post.frontmatter.ogImage && (
                         <Link
                           href={`/${post.pillar}/${post.slug}`}
                           aria-hidden="true"
                           tabIndex={-1}
-                          className="shrink-0 overflow-hidden rounded-md"
+                          className="shrink-0 overflow-hidden rounded-lg w-28 h-20 sm:w-40 sm:h-28 aspect-[3/2] relative"
                         >
                           <img
                             src={post.frontmatter.ogImage}
                             alt={post.frontmatter.title}
-                            className="w-[80px] h-[60px] object-cover object-top transition-transform duration-300 group-hover:scale-[1.05]"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
                           />
                         </Link>
                       )}
-                      <div className="min-w-0 flex flex-col gap-1.5">
-                        <PillarTag pillar={post.pillar} />
+                      <div className="min-w-0 flex-1 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-fg-subtle)]">
+                          <span className="text-[var(--color-accent)] font-bold">{PILLAR_LABELS[post.pillar as Pillar] ?? post.pillar}</span>
+                          <span className="opacity-40">·</span>
+                          <DateLabel date={post.frontmatter.publishedAt} />
+                        </div>
                         <Link href={`/${post.pillar}/${post.slug}`}>
-                          <h3 className="font-article font-semibold text-[0.95rem] leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
+                          <h3 className="font-article font-bold text-base sm:text-[1.2rem] leading-snug group-hover:text-[var(--color-accent)] transition-colors mt-1 mb-1.5">
                             {post.frontmatter.title}
                           </h3>
                         </Link>
-                        <p className="text-[11.5px] text-[var(--color-fg-muted)] line-clamp-2 leading-relaxed">
+                        <p className="text-[11.5px] sm:text-xs leading-relaxed text-[var(--color-fg-muted)] line-clamp-2 mb-1">
                           {post.frontmatter.description}
                         </p>
-                        <DateLabel date={post.frontmatter.publishedAt} />
                       </div>
                     </article>
                   ))}
