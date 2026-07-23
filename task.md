@@ -42,3 +42,13 @@
   - [x] Import and render `<ReadingProgressBar />` inside the article page.
   - [x] Fetch up to 2 other articles in the same pillar (excluding current) and render them at the bottom under a "Read Next" heading inside a `grid sm:grid-cols-2 gap-6` using `ArticleCard` with variant="grid".
 - [x] Verify that the code compiles cleanly and there are no TypeScript errors.
+
+## Landing Page Improvements
+
+- [x] Brand Manifesto Strip: Render a styled banner at the top of the Home Page featuring "⚡ KNOWLEDGE FOR THE AMBITIOUS · AI · TECHNOLOGY · PRODUCTIVITY · BUSINESS" with an accent/5 background.
+- [x] Redesign Top Story Hero: Increase heights, scale up title typography, and add a backdrop-blur "Read Article →" CTA pill overlay.
+- [x] Asymmetric Featured Grid layout: Update index 0 to a landscape 2-column card with larger text and `aspect-[16/9]`, and set the remaining 3 posts as 1-column `aspect-square` cards.
+- [x] Modernize Sidebar Categories: Replace list layout with wrapped, rounded topic pills.
+- [x] Update Newsletter CTA: Add "Join 4,200+ Knowledge Seekers" social proof headline, a 3-column benefits block (AI, SaaS, productivity), and an updated trust tagline.
+- [x] Verify compiling and execution.
+

@@ -53,6 +53,11 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-[1440px] px-5 md:px-8 py-8 md:py-10">
 
+      {/* Brand Manifesto Strip */}
+      <div className="mb-6 py-2.5 px-4 rounded-lg bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/10 text-[var(--color-accent)] text-center text-[10px] sm:text-xs font-bold tracking-[0.12em] font-display">
+        ⚡ KNOWLEDGE FOR THE AMBITIOUS · AI · TECHNOLOGY · PRODUCTIVITY · BUSINESS
+      </div>
+
       <div className="grid lg:grid-cols-[1fr_296px] gap-10 lg:gap-12 items-start">
 
         {/* ── LEFT ────────────────────────────────────────────── */}
@@ -63,7 +68,7 @@ export default function HomePage() {
             <RevealSection className="mb-5">
               <SectionLabel>Top Story</SectionLabel>
 
-              <div className="relative w-full h-[220px] sm:h-[280px] md:h-[320px] rounded-xl overflow-hidden group flex items-end">
+              <div className="relative w-full h-[300px] sm:h-[380px] md:h-[440px] rounded-xl overflow-hidden group flex items-end">
                 {hero.frontmatter.ogImage && (
                   <img
                     src={hero.frontmatter.ogImage}
@@ -86,7 +91,7 @@ export default function HomePage() {
                   </div>
                   
                   <Link href={`/${hero.pillar}/${hero.slug}`} className="block max-w-4xl">
-                    <h2 className="font-article font-bold text-white text-[1.6rem] sm:text-[1.9rem] md:text-[2.2rem] leading-[1.1] tracking-[-0.01em] hover:text-neutral-200 transition-colors">
+                    <h2 className="font-article font-bold text-white text-[1.8rem] sm:text-[2.2rem] md:text-[2.8rem] leading-[1.1] tracking-[-0.01em] hover:text-neutral-200 transition-colors">
                       {hero.frontmatter.title}
                     </h2>
                   </Link>
@@ -95,24 +100,33 @@ export default function HomePage() {
                     {hero.frontmatter.description}
                   </p>
 
-                  <div className="flex items-center gap-2 text-[11px] text-white/60">
-                    {hero.frontmatter.author && (
-                      <>
-                        <span className="font-medium text-white/80">
-                          {hero.frontmatter.author}
-                        </span>
-                        <span className="text-white/40">·</span>
-                      </>
-                    )}
-                    <time dateTime={hero.frontmatter.publishedAt} className="tabular-nums">
-                      {new Date(hero.frontmatter.publishedAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </time>
-                    <span className="text-white/40">·</span>
-                    <span>{estimateReadingTime(hero.content)} min read</span>
+                  <div className="flex flex-wrap items-center justify-between gap-4 mt-2 pt-2 border-t border-white/10">
+                    <div className="flex items-center gap-2 text-[11px] text-white/60">
+                      {hero.frontmatter.author && (
+                        <>
+                          <span className="font-medium text-white/80">
+                            {hero.frontmatter.author}
+                          </span>
+                          <span className="text-white/40">·</span>
+                        </>
+                      )}
+                      <time dateTime={hero.frontmatter.publishedAt} className="tabular-nums">
+                        {new Date(hero.frontmatter.publishedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </time>
+                      <span className="text-white/40">·</span>
+                      <span>{estimateReadingTime(hero.content)} min read</span>
+                    </div>
+
+                    <Link
+                      href={`/${hero.pillar}/${hero.slug}`}
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-white bg-white/20 hover:bg-white/30 backdrop-blur transition-all"
+                    >
+                      Read Article →
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -125,14 +139,23 @@ export default function HomePage() {
               <SectionLabel>Featured</SectionLabel>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {featured.map((post) => (
-                  <article key={`${post.pillar}-${post.slug}`} className="group flex flex-col gap-3">
+                {featured.map((post, idx) => (
+                  <article
+                    key={`${post.pillar}-${post.slug}`}
+                    className={cn(
+                      "group flex flex-col gap-3",
+                      idx === 0 ? "col-span-2 md:col-span-2" : "col-span-1 md:col-span-1"
+                    )}
+                  >
                     {post.frontmatter.ogImage && (
                       <Link
                         href={`/${post.pillar}/${post.slug}`}
                         aria-hidden="true"
                         tabIndex={-1}
-                        className="block overflow-hidden rounded-lg w-full aspect-square relative"
+                        className={cn(
+                          "block overflow-hidden rounded-lg w-full relative",
+                          idx === 0 ? "aspect-[16/9]" : "aspect-square"
+                        )}
                       >
                         <img
                           src={post.frontmatter.ogImage}
@@ -146,7 +169,14 @@ export default function HomePage() {
                         <PillarTag pillar={post.pillar} />
                       </div>
                       <Link href={`/${post.pillar}/${post.slug}`}>
-                        <h3 className="font-article font-semibold text-[0.98rem] sm:text-[1.05rem] leading-[1.3] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3">
+                        <h3
+                          className={cn(
+                            "font-article font-semibold leading-[1.3] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3",
+                            idx === 0
+                              ? "text-[1.15rem] sm:text-[1.25rem] md:text-[1.35rem]"
+                              : "text-[0.98rem] sm:text-[1.05rem]"
+                          )}
+                        >
                           {post.frontmatter.title}
                         </h3>
                       </Link>
@@ -263,17 +293,17 @@ export default function HomePage() {
           <div className="mb-7">
             <SectionLabel>Categories</SectionLabel>
 
-            <div className="flex flex-col divide-y divide-[var(--color-border)]">
+            <div className="flex flex-wrap gap-2">
               {PILLARS.map((pillar) => (
                 <Link
                   key={pillar}
                   href={`/${pillar}`}
-                  className="flex items-center justify-between py-2.5 group"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-[var(--color-fg-subtle)] hover:bg-[var(--color-bg-tertiary)] transition-all group"
                 >
-                  <span className="text-[13px] font-medium group-hover:text-[var(--color-fg)] transition-colors">
+                  <span className="text-[12px] font-medium text-[var(--color-fg-muted)] group-hover:text-[var(--color-fg)] transition-colors">
                     {PILLAR_LABELS[pillar]}
                   </span>
-                  <span className="text-[11px] font-semibold tabular-nums text-[var(--color-fg-subtle)] bg-[var(--color-bg-tertiary)] px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-semibold tabular-nums text-[var(--color-fg-subtle)] bg-[var(--color-bg-tertiary)] group-hover:bg-[var(--color-bg-secondary)] px-1.5 py-0.5 rounded-full transition-colors">
                     {categoryCounts[pillar] ?? 0}
                   </span>
                 </Link>
@@ -315,13 +345,42 @@ export default function HomePage() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-fg-subtle)] mb-3">
               Newsletter
             </p>
-            <h2 className="font-inter font-bold text-[1.6rem] md:text-[2rem] tracking-[-0.025em] leading-[1.15] mb-3">
-              Knowledge for the Ambitious
+            <h2 className="font-inter font-bold text-[1.6rem] md:text-[2.2rem] tracking-[-0.025em] leading-[1.15] mb-3">
+              Join 4,200+ Knowledge Seekers
             </h2>
-            <p className="text-[var(--color-fg-muted)] max-w-md mx-auto text-[13.5px] leading-relaxed mb-7">
+            <p className="text-[var(--color-fg-muted)] max-w-md mx-auto text-[13.5px] leading-relaxed mb-4">
               Join thousands of students, founders, and professionals who get weekly insights
               on AI, technology, productivity, and business.
             </p>
+
+            {/* 3-column benefits block */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto my-8 text-left">
+              <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
+                <h4 className="font-semibold text-[13px] mb-1 text-[var(--color-fg)] flex items-center gap-1.5">
+                  <span className="text-[var(--color-accent)]">✦</span> AI & Automation
+                </h4>
+                <p className="text-[11.5px] text-[var(--color-fg-muted)] leading-relaxed">
+                  Understand how artificial intelligence is reshaping tools, roles, and software workflows.
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
+                <h4 className="font-semibold text-[13px] mb-1 text-[var(--color-fg)] flex items-center gap-1.5">
+                  <span className="text-[var(--color-accent)]">✦</span> SaaS & Tech
+                </h4>
+                <p className="text-[11.5px] text-[var(--color-fg-muted)] leading-relaxed">
+                  Learn engineering best practices, architectural choices, and scaling strategies for SaaS.
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
+                <h4 className="font-semibold text-[13px] mb-1 text-[var(--color-fg)] flex items-center gap-1.5">
+                  <span className="text-[var(--color-accent)]">✦</span> Smart Productivity
+                </h4>
+                <p className="text-[11.5px] text-[var(--color-fg-muted)] leading-relaxed">
+                  Optimize your personal system, improve focus, and master high-leverage work habits.
+                </p>
+              </div>
+            </div>
+
             <form
               className="flex flex-col sm:flex-row gap-2.5 max-w-[380px] mx-auto"
               action="/contact"
@@ -343,7 +402,7 @@ export default function HomePage() {
               </Button>
             </form>
             <p className="text-[11px] text-[var(--color-fg-subtle)] mt-3">
-              No spam. Unsubscribe any time.
+              Zero spam. Only high-signal insights. Unsubscribe in one click at any time.
             </p>
           </div>
         </RevealSection>
