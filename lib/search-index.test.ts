@@ -11,5 +11,8 @@ describe('getSearchIndex', () => {
     expect(entry).toHaveProperty('pillar')
     expect(entry).toHaveProperty('slug')
     expect(entry).toHaveProperty('publishedAt')
+    expect(entry).toHaveProperty('readingTime')
+    expect(typeof entry.readingTime).toBe('number')
+    expect(entry.readingTime).toBeGreaterThanOrEqual(1)
   })
 })
