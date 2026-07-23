@@ -7,6 +7,7 @@ import { estimateReadingTime } from '@/lib/readingTime'
 import { MessageSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { RevealSection } from '@/components/RevealSection'
+import { SectionLabel } from '@/components/SectionLabel'
 import type { Post } from '@/lib/content'
 import { PILLAR_LABELS, type Pillar } from '@/lib/pillars'
 
@@ -141,15 +142,14 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
             )
           })()}
 
-          <hr className="h-px border-none bg-[var(--color-border)] my-10" />
-
           {/* Latest Articles Section */}
           {(() => {
             const latest = filteredPosts.slice(3)
             if (latest.length === 0) return null
 
             return (
-              <RevealSection delay={0.1}>
+              <RevealSection delay={0.1} className="mt-12">
+                <SectionLabel>Latest Articles</SectionLabel>
                 <div className="flex flex-col">
                   {latest.map((post) => (
                     <article key={`${post.pillar}-${post.slug}`} className="group flex gap-6 py-6 border-b border-[var(--color-border)]/40 last:border-b-0 last:pb-0 first:pt-0">
