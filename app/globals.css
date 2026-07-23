@@ -216,3 +216,23 @@ a, button, [role="button"], summary, select, label[for] {
 button:disabled, [role="button"][aria-disabled="true"], input:disabled, textarea:disabled {
   cursor: not-allowed;
 }
+
+/* ─── Custom animations for search overlay ───────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
