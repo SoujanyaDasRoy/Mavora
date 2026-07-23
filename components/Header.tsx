@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
 import { ThemeToggle } from './ThemeToggle'
-import { SearchDialog } from './SearchDialog'
+import { SearchBox } from './SearchBox'
+import { Search } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -26,11 +27,23 @@ function MenuIcon({ className }: { className?: string }) {
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setSearchOpen((v) => !v)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
   const navLinks = [
@@ -84,8 +97,21 @@ export function Header() {
         </nav>
 
         {/* ── Right controls ───────────────────────────────── */}
-        <div className="flex items-center justify-end gap-1 shrink-0">
-          <SearchDialog />
+        <div className="flex items-center justify-end gap-2 shrink-0">
+          {/* Search Trigger */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search articles"
+            className="inline-flex items-center justify-center gap-1.5 h-9 rounded-lg px-2.5 text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] hover:bg-[var(--color-bg-secondary)] transition-all duration-200 border border-transparent focus-visible:border-[var(--color-accent)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/20 outline-none"
+          >
+            <Search className="size-4" />
+            <kbd className="hidden md:inline-flex items-center text-[10px] font-mono font-semibold text-[var(--color-fg-subtle)] bg-[var(--color-bg-secondary)]/80 border border-[var(--color-border-strong)] rounded px-1.5 py-0.5 leading-none shadow-sm">
+              ⌘K
+            </kbd>
+          </button>
+
+          {/* Search modal */}
+          <SearchBox isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
           {/* Theme toggle */}
           <ThemeToggle />
