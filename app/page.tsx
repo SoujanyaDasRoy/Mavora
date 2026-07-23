@@ -42,8 +42,8 @@ export default function HomePage() {
 
   const [hero, ...rest] = posts
   const latestNews     = rest.slice(0, 4)
-  const featured       = rest.slice(4, 7)
-  const latestArticles = rest.slice(7)
+  const featured       = rest.slice(4, 8)
+  const latestArticles = rest.slice(8)
 
   const categoryCounts = PILLARS.reduce<Record<string, number>>((acc, p) => {
     acc[p] = posts.filter((post) => post.pillar === p).length
@@ -126,20 +126,20 @@ export default function HomePage() {
             <RevealSection className="mb-9" delay={0.05}>
               <SectionLabel>Featured</SectionLabel>
 
-              <div className="flex flex-col gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {featured.map((post) => (
-                  <article key={`${post.pillar}-${post.slug}`} className="group flex gap-4 sm:gap-5 items-start">
+                  <article key={`${post.pillar}-${post.slug}`} className="group flex flex-col gap-3">
                     {post.frontmatter.ogImage && (
                       <Link
                         href={`/${post.pillar}/${post.slug}`}
                         aria-hidden="true"
                         tabIndex={-1}
-                        className="block overflow-hidden rounded-lg shrink-0"
+                        className="block overflow-hidden rounded-lg w-full aspect-square relative"
                       >
                         <img
                           src={post.frontmatter.ogImage}
                           alt={post.frontmatter.title}
-                          className="aspect-square w-24 h-24 sm:w-28 sm:h-28 object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                         />
                       </Link>
                     )}
@@ -148,11 +148,11 @@ export default function HomePage() {
                         <PillarTag pillar={post.pillar} />
                       </div>
                       <Link href={`/${post.pillar}/${post.slug}`}>
-                        <h3 className="font-article font-semibold text-[1.05rem] sm:text-[1.2rem] leading-snug tracking-[-0.005em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-2">
+                        <h3 className="font-article font-semibold text-[0.98rem] sm:text-[1.05rem] leading-[1.3] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3">
                           {post.frontmatter.title}
                         </h3>
                       </Link>
-                      <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-[11px] text-[var(--color-fg-subtle)] mt-1">
+                      <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-[11px] text-[var(--color-fg-subtle)] mt-auto pt-1">
                         {post.frontmatter.author && (
                           <>
                             <span className="font-bold uppercase text-[var(--color-accent)] tracking-wider">
