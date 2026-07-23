@@ -41,9 +41,9 @@ export default function HomePage() {
   const posts = getAllPosts()
 
   const [hero, ...rest] = posts
-  const latestNews     = rest.slice(0, 4)
-  const featured       = rest.slice(4, 8)
-  const latestArticles = rest.slice(8)
+  const latestNews     = rest.slice(0, 6)
+  const featured       = rest.slice(6, 10)
+  const latestArticles = rest.slice(10)
 
   const categoryCounts = PILLARS.reduce<Record<string, number>>((acc, p) => {
     acc[p] = posts.filter((post) => post.pillar === p).length
@@ -60,10 +60,10 @@ export default function HomePage() {
 
           {/* TOP STORY */}
           {hero && (
-            <RevealSection className="mb-6">
+            <RevealSection className="mb-5">
               <SectionLabel>Top Story</SectionLabel>
 
-              <div className="relative w-full h-[280px] sm:h-[340px] md:h-[380px] rounded-xl overflow-hidden group flex items-end">
+              <div className="relative w-full h-[220px] sm:h-[280px] md:h-[320px] rounded-xl overflow-hidden group flex items-end">
                 {hero.frontmatter.ogImage && (
                   <img
                     src={hero.frontmatter.ogImage}
@@ -76,7 +76,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
 
                 {/* Content Overlay */}
-                <div className="relative z-10 p-6 sm:p-8 md:p-10 w-full flex flex-col gap-3">
+                <div className="relative z-10 p-5 sm:p-6 md:p-8 w-full flex flex-col gap-2">
                   <div>
                     <Badge
                       className="border-none bg-[var(--color-accent)] hover:bg-[var(--color-accent)] text-white text-[9px] font-semibold uppercase tracking-widest rounded-[3px] px-1.5 py-0.5 h-auto leading-[1.6]"
@@ -86,12 +86,12 @@ export default function HomePage() {
                   </div>
                   
                   <Link href={`/${hero.pillar}/${hero.slug}`} className="block max-w-4xl">
-                    <h2 className="font-article font-bold text-white text-[1.8rem] sm:text-[2.2rem] md:text-[2.6rem] leading-[1.1] tracking-[-0.01em] hover:text-neutral-200 transition-colors">
+                    <h2 className="font-article font-bold text-white text-[1.6rem] sm:text-[1.9rem] md:text-[2.2rem] leading-[1.1] tracking-[-0.01em] hover:text-neutral-200 transition-colors">
                       {hero.frontmatter.title}
                     </h2>
                   </Link>
 
-                  <p className="text-[13.5px] text-white/80 max-w-2xl leading-[1.65] line-clamp-2 sm:line-clamp-3">
+                  <p className="text-[13px] text-white/80 max-w-2xl leading-[1.6] line-clamp-1 sm:line-clamp-2">
                     {hero.frontmatter.description}
                   </p>
 
@@ -118,8 +118,6 @@ export default function HomePage() {
               </div>
             </RevealSection>
           )}
-
-          <Separator className="bg-[var(--color-border)] mb-6" />
 
           {/* FEATURED */}
           {featured.length > 0 && (
