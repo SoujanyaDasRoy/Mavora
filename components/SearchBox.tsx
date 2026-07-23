@@ -20,6 +20,108 @@ export interface SearchBoxProps {
   onSelect?: (entry: SearchEntry) => void
 }
 
+interface SearchResultItemProps {
+  entry: SearchEntry
+  isActive: boolean
+  onClick: () => void
+  onMouseEnter: () => void
+  query: string
+  variant: 'overlay' | 'inline'
+}
+
+function SearchResultItem({
+  entry,
+  isActive,
+  onClick,
+  onMouseEnter,
+  query,
+  variant,
+}: SearchResultItemProps) {
+  const badgeClass = cn(
+    'font-semibold uppercase tracking-widest rounded border shrink-0',
+    'text-[var(--color-accent)] bg-[var(--color-accent)]/8 border-[var(--color-accent)]/20',
+    variant === 'overlay' ? 'text-[10px] px-2 py-0.5' : 'text-[9px] px-1.5 py-0.5'
+  )
+
+  const highlightText = (text: string, q: string) => {
+    if (!q.trim()) return <span>{text}</span>
+    const parts = text.split(new RegExp(`(${escapeRegExp(q)})`, 'gi'))
+    return (
+      <span>
+        {parts.map((part, i) =>
+          part.toLowerCase() === q.toLowerCase() ? (
+            <strong key={i} className="font-bold text-[var(--color-accent)]">
+              {part}
+            </strong>
+          ) : (
+            part
+          )
+        )}
+      </span>
+    )
+  }
+
+  if (variant === 'overlay') {
+    return (
+      <button
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        className={cn(
+          'w-full text-left flex flex-col gap-2 rounded-2xl p-6 transition-all duration-300 outline-none border border-transparent',
+          isActive
+            ? 'bg-[var(--color-bg-secondary)] border-[var(--color-border)] shadow-sm'
+            : 'hover:bg-[var(--color-bg-secondary)]/30'
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <span className={badgeClass}>
+            {PILLAR_LABELS[entry.pillar as keyof typeof PILLAR_LABELS] ?? entry.pillar}
+          </span>
+          <span className="text-xs text-[var(--color-fg-muted)] font-medium">
+            {entry.readingTime} min read
+          </span>
+        </div>
+        <h3 className="font-display font-bold text-xl md:text-2xl leading-snug text-[var(--color-fg)]">
+          {highlightText(entry.title, query)}
+        </h3>
+        {entry.description && (
+          <p className="text-sm md:text-base text-[var(--color-fg-muted)] line-clamp-2">
+            {highlightText(entry.description, query)}
+          </p>
+        )}
+      </button>
+    )
+  }
+
+  // Inline variant
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      className={cn(
+        'w-full text-left flex items-start gap-3 rounded-xl px-4 py-3 transition-all duration-150 outline-none',
+        isActive
+          ? 'bg-[var(--color-bg-secondary)] shadow-sm border-l-2 border-[var(--color-accent)] pl-3.5'
+          : 'hover:bg-[var(--color-bg-secondary)]/40 border-l-2 border-transparent'
+      )}
+    >
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className={badgeClass}>
+            {PILLAR_LABELS[entry.pillar as keyof typeof PILLAR_LABELS] ?? entry.pillar}
+          </span>
+          <span className="text-[10px] text-[var(--color-fg-muted)] font-medium">
+            {entry.readingTime} min read
+          </span>
+        </div>
+        <span className="font-display font-semibold text-sm leading-snug text-[var(--color-fg)] block">
+          {highlightText(entry.title, query)}
+        </span>
+      </div>
+    </button>
+  )
+}
+
 export function SearchBox({
   isOpen,
   onClose,
@@ -64,8 +166,26 @@ export function SearchBox({
     return () => controller.abort()
   }, [shouldFetch])
 
+  // Set initial query from URL search params on client mount for static HTML export compatibility
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const q = params.get('q')
+      if (q) {
+        setInternalQuery(q)
+      }
+    }
+  }, [])
+
+  // Initial State: If the query prop is passed, initialize internalQuery state with it using a useEffect
+  useEffect(() => {
+    if (propQuery !== undefined) {
+      setInternalQuery(propQuery)
+    }
+  }, [propQuery])
+
   // Resolve which values to use: props or internal state
-  const query = propQuery !== undefined ? propQuery : internalQuery
+  const query = internalQuery
   const status = propStatus !== undefined ? propStatus : internalStatus
   const index = propIndex !== undefined ? propIndex : internalIndex
   const activeIndex = propActiveIndex !== undefined ? propActiveIndex : internalActiveIndex
@@ -82,10 +202,8 @@ export function SearchBox({
 
   // Reset active index when query changes
   useEffect(() => {
-    if (propQuery === undefined) {
-      setInternalActiveIndex(0)
-    }
-  }, [query, propQuery])
+    setInternalActiveIndex(0)
+  }, [query])
 
   // Prevent background scrolling when overlay is open
   useEffect(() => {
@@ -151,25 +269,6 @@ export function SearchBox({
     }
   }
 
-  // Highlight matches function
-  const highlightText = (text: string, q: string) => {
-    if (!q.trim()) return <span>{text}</span>
-    const parts = text.split(new RegExp(`(${escapeRegExp(q)})`, 'gi'))
-    return (
-      <span>
-        {parts.map((part, i) =>
-          part.toLowerCase() === q.toLowerCase() ? (
-            <strong key={i} className="font-bold text-[var(--color-accent)]">
-              {part}
-            </strong>
-          ) : (
-            part
-          )
-        )}
-      </span>
-    )
-  }
-
   // If not inline and not open, don't render anything
   if (!inline && !isOpen) return null
 
@@ -181,7 +280,7 @@ export function SearchBox({
           {/* Top layout: Giant input and close button */}
           <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-6 md:pb-8 gap-6">
             <div className="flex-1 flex items-center gap-4">
-              <Search className="size-8 md:size-12 text-[var(--color-fg-subtle)] shrink-0" />
+              <Search className="size-8 md:size-10 text-[var(--color-fg-subtle)] shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
@@ -192,7 +291,7 @@ export function SearchBox({
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder="Search articles, topics..."
-                className="w-full bg-transparent outline-none text-3xl md:text-5xl font-extrabold text-[var(--color-fg)] placeholder:text-[var(--color-fg-subtle)] border-none focus:ring-0 p-0"
+                className="w-full bg-transparent outline-none text-2xl md:text-3xl font-bold text-[var(--color-fg)] placeholder:text-[var(--color-fg-subtle)] border-none focus:ring-0 p-0"
               />
             </div>
             <button
@@ -218,10 +317,21 @@ export function SearchBox({
               ) : (
                 <div className="flex flex-col gap-6">
                   {status === 'loading' && (
-                    <p className="text-[var(--color-fg-muted)] text-lg py-12 flex items-center gap-3">
-                      <span className="animate-spin rounded-full h-5 w-5 border-2 border-[var(--color-accent)] border-t-transparent" />
-                      Loading index…
-                    </p>
+                    <div className="flex flex-col gap-6 w-full animate-pulse">
+                      {[1, 2, 3].map((n) => (
+                        <div
+                          key={n}
+                          className="w-full flex flex-col gap-3 rounded-2xl p-6 border border-[var(--color-border)]/40 bg-[var(--color-bg-secondary)]/20"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-5 w-20 bg-[var(--color-border)]/60 rounded" />
+                            <div className="h-4 w-16 bg-[var(--color-border)]/40 rounded" />
+                          </div>
+                          <div className="h-7 w-3/4 bg-[var(--color-border)]/60 rounded mt-1" />
+                          <div className="h-4 w-5/6 bg-[var(--color-border)]/40 rounded" />
+                        </div>
+                      ))}
+                    </div>
                   )}
                   {status === 'error' && (
                     <p className="text-[var(--color-fg-muted)] text-lg py-12">
@@ -234,104 +344,42 @@ export function SearchBox({
                     </p>
                   )}
                   {status === 'ready' &&
-                    results.map((entry, i) => {
-                      const isActive = i === activeIndex
-                      return (
-                        <button
-                          key={`${entry.pillar}-${entry.slug}`}
-                          onClick={() => handleSelect(entry)}
-                          onMouseEnter={() => setActiveIndex(i)}
-                          className={cn(
-                            'w-full text-left flex flex-col gap-2 rounded-2xl p-6 transition-all duration-300 outline-none border border-transparent',
-                            isActive
-                              ? 'bg-[var(--color-bg-secondary)] border-[var(--color-border)] shadow-sm'
-                              : 'hover:bg-[var(--color-bg-secondary)]/30'
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className={cn(
-                              "text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded border shrink-0",
-                              entry.pillar === 'ai' && "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-900/30",
-                              entry.pillar === 'technology' && "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border-sky-200/50 dark:border-sky-900/30",
-                              entry.pillar === 'productivity' && "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border-green-200/50 dark:border-green-900/30",
-                              entry.pillar === 'business' && "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-200/50 dark:border-red-900/30"
-                            )}>
-                              {PILLAR_LABELS[entry.pillar as keyof typeof PILLAR_LABELS] ?? entry.pillar}
-                            </span>
-                            <span className="text-xs text-[var(--color-fg-muted)] font-medium">
-                              {entry.readingTime} min read
-                            </span>
-                          </div>
-                          <h3 className="font-display font-bold text-xl md:text-2xl leading-snug text-[var(--color-fg)]">
-                            {highlightText(entry.title, query)}
-                          </h3>
-                          {entry.description && (
-                            <p className="text-sm md:text-base text-[var(--color-fg-muted)] line-clamp-2">
-                              {highlightText(entry.description, query)}
-                            </p>
-                          )}
-                        </button>
-                      )
-                    })}
+                    results.map((entry, i) => (
+                      <SearchResultItem
+                        key={`${entry.pillar}-${entry.slug}`}
+                        entry={entry}
+                        isActive={i === activeIndex}
+                        onClick={() => handleSelect(entry)}
+                        onMouseEnter={() => setActiveIndex(i)}
+                        query={query}
+                        variant="overlay"
+                      />
+                    ))}
                 </div>
               )}
             </div>
 
             {/* Right side: Discovery */}
-            <div className="flex flex-col gap-10 border-t md:border-t-0 md:border-l border-[var(--color-border)] pt-10 md:pt-0 md:pl-10">
-              {/* Browse by Topic */}
-              <div>
-                <h3 className="text-xs font-bold text-[var(--color-fg-muted)] uppercase tracking-wider mb-4 font-display">
-                  Browse by Topic
-                </h3>
-                <div className="flex flex-wrap gap-2.5">
-                  {PILLARS.map((pillar) => (
+            <div className="flex flex-col gap-6 border-t md:border-t-0 md:border-l border-[var(--color-border)] pt-10 md:pt-0 md:pl-10">
+              <div className="flex flex-wrap gap-2.5">
+                {PILLARS.map((pillar) => {
+                  const count = index.filter((p) => p.pillar === pillar).length
+                  return (
                     <button
                       key={pillar}
                       onClick={() => {
                         onClose?.()
                         router.push(`/${pillar}`)
                       }}
-                      className="px-4 py-2 rounded-full text-sm font-medium bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-fg)] transition-all hover:scale-[1.03] duration-150"
+                      className="px-4 py-2 rounded-full text-sm font-medium bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-fg)] transition-all hover:scale-[1.03] duration-150 flex items-center gap-2"
                     >
-                      {PILLAR_LABELS[pillar]}
+                      <span>{PILLAR_LABELS[pillar]}</span>
+                      <span className="text-xs text-[var(--color-fg-muted)] font-normal px-1.5 py-0.5 rounded-full bg-[var(--color-bg)] border border-[var(--color-border)]">
+                        {count}
+                      </span>
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Trending Stories */}
-              <div>
-                <h3 className="text-xs font-bold text-[var(--color-fg-muted)] uppercase tracking-wider mb-4 font-display">
-                  Trending Stories
-                </h3>
-                <div className="flex flex-col gap-5">
-                  {index.slice(0, 3).map((entry) => (
-                    <button
-                      key={`${entry.pillar}-${entry.slug}`}
-                      onClick={() => handleSelect(entry)}
-                      className="w-full text-left group flex flex-col gap-1.5 transition-all duration-200 outline-none"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "text-[8px] font-semibold uppercase tracking-widest px-1 py-0.2 rounded border shrink-0",
-                          entry.pillar === 'ai' && "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-900/30",
-                          entry.pillar === 'technology' && "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border-sky-200/50 dark:border-sky-900/30",
-                          entry.pillar === 'productivity' && "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border-green-200/50 dark:border-green-900/30",
-                          entry.pillar === 'business' && "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-200/50 dark:border-red-900/30"
-                        )}>
-                          {PILLAR_LABELS[entry.pillar as keyof typeof PILLAR_LABELS] ?? entry.pillar}
-                        </span>
-                        <span className="text-[10px] text-[var(--color-fg-muted)] font-medium">
-                          {entry.readingTime} min read
-                        </span>
-                      </div>
-                      <h4 className="font-display font-semibold text-sm leading-snug text-[var(--color-fg)] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
-                        {entry.title}
-                      </h4>
-                    </button>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -371,52 +419,39 @@ export function SearchBox({
             <h3 className="text-[11px] font-semibold text-[var(--color-fg-muted)] uppercase tracking-wider px-3 pt-2 pb-2">
               Trending / Featured Stories
             </h3>
-            {index.slice(0, 3).map((entry, i) => {
-              const isActive = i === activeIndex
-              return (
-                <button
-                  key={`${entry.pillar}-${entry.slug}`}
-                  onClick={() => handleSelect(entry)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  className={cn(
-                    'w-full text-left flex items-start gap-3 rounded-xl px-4 py-3 transition-all duration-150 outline-none',
-                    isActive
-                      ? 'bg-[var(--color-bg-secondary)] shadow-sm border-l-2 border-[var(--color-accent)] pl-3.5'
-                      : 'hover:bg-[var(--color-bg-secondary)]/40 border-l-2 border-transparent'
-                  )}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={cn(
-                        "text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded border shrink-0",
-                        entry.pillar === 'ai' && "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-900/30",
-                        entry.pillar === 'technology' && "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border-sky-200/50 dark:border-sky-900/30",
-                        entry.pillar === 'productivity' && "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border-green-200/50 dark:border-green-900/30",
-                        entry.pillar === 'business' && "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-200/50 dark:border-red-900/30"
-                      )}>
-                        {PILLAR_LABELS[entry.pillar as keyof typeof PILLAR_LABELS] ?? entry.pillar}
-                      </span>
-                      <span className="text-[10px] text-[var(--color-fg-muted)] font-medium">
-                        {entry.readingTime} min read
-                      </span>
-                    </div>
-                    <span className="font-display font-semibold text-sm leading-snug text-[var(--color-fg)] block">
-                      {entry.title}
-                    </span>
-                  </div>
-                </button>
-              )
-            })}
+            {index.slice(0, 3).map((entry, i) => (
+              <SearchResultItem
+                key={`${entry.pillar}-${entry.slug}`}
+                entry={entry}
+                isActive={i === activeIndex}
+                onClick={() => handleSelect(entry)}
+                onMouseEnter={() => setActiveIndex(i)}
+                query={query}
+                variant="inline"
+              />
+            ))}
           </div>
         </div>
       ) : (
         /* Otherwise, show filtered search results */
         <div className="p-2">
           {status === 'loading' && (
-            <p className="text-[var(--color-fg-muted)] text-sm px-3 py-8 text-center flex items-center justify-center gap-2">
-              <span className="animate-spin rounded-full h-4 w-4 border-2 border-[var(--color-accent)] border-t-transparent" />
-              Loading index…
-            </p>
+            <div className="flex flex-col gap-2 p-2 animate-pulse">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="w-full flex items-start gap-3 rounded-xl px-4 py-3 bg-[var(--color-bg-secondary)]/20 border border-[var(--color-border)]/20"
+                >
+                  <div className="flex-1 min-w-0 flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-4.5 w-16 bg-[var(--color-border)]/60 rounded" />
+                      <div className="h-3.5 w-12 bg-[var(--color-border)]/40 rounded" />
+                    </div>
+                    <div className="h-5 w-5/6 bg-[var(--color-border)]/60 rounded mt-0.5" />
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
           {status === 'error' && (
             <p className="text-[var(--color-fg-muted)] text-sm px-3 py-8 text-center">
@@ -429,42 +464,17 @@ export function SearchBox({
             </p>
           )}
           {status === 'ready' &&
-            results.map((entry, i) => {
-              const isActive = i === activeIndex
-              return (
-                <button
-                  key={`${entry.pillar}-${entry.slug}`}
-                  onClick={() => handleSelect(entry)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  className={cn(
-                    'w-full text-left flex items-start gap-3 rounded-xl px-4 py-3 transition-all duration-150 outline-none',
-                    isActive
-                      ? 'bg-[var(--color-bg-secondary)] shadow-sm border-l-2 border-[var(--color-accent)] pl-3.5'
-                      : 'hover:bg-[var(--color-bg-secondary)]/40 border-l-2 border-transparent'
-                  )}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={cn(
-                        "text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded border shrink-0",
-                        entry.pillar === 'ai' && "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-900/30",
-                        entry.pillar === 'technology' && "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border-sky-200/50 dark:border-sky-900/30",
-                        entry.pillar === 'productivity' && "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border-green-200/50 dark:border-green-900/30",
-                        entry.pillar === 'business' && "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-200/50 dark:border-red-900/30"
-                      )}>
-                        {PILLAR_LABELS[entry.pillar as keyof typeof PILLAR_LABELS] ?? entry.pillar}
-                      </span>
-                      <span className="text-[10px] text-[var(--color-fg-muted)] font-medium">
-                        {entry.readingTime} min read
-                      </span>
-                    </div>
-                    <span className="font-display font-semibold text-sm leading-snug text-[var(--color-fg)] block">
-                      {highlightText(entry.title, query)}
-                    </span>
-                  </div>
-                </button>
-              )
-            })}
+            results.map((entry, i) => (
+              <SearchResultItem
+                key={`${entry.pillar}-${entry.slug}`}
+                entry={entry}
+                isActive={i === activeIndex}
+                onClick={() => handleSelect(entry)}
+                onMouseEnter={() => setActiveIndex(i)}
+                query={query}
+                variant="inline"
+              />
+            ))}
         </div>
       )}
     </>

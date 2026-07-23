@@ -84,3 +84,13 @@
 - [x] Add reading time metadata (e.g. `• 4 min read`) next to the dates in the sidebar news/stories lists.
 - [x] Verify compilation of the project runs successfully without any warnings or errors.
 
+## Search Feature Redesign and Bug Fixes
+
+- [x] Update `app/search/page.tsx` to accept `searchParams` as a Promise, await it, and pass it as `query` prop into `<SearchBox>`.
+- [x] Consolidate result-item rendering inside `components/SearchBox.tsx` to reduce duplicated markup.
+- [x] Initialize `internalQuery` state with the `query` prop using a `useEffect` in `components/SearchBox.tsx`.
+- [x] Consolidate badge styles in `components/SearchBox.tsx` to render all categories with standard accent styling.
+- [x] Replace spinning loader with 3 simple pulsing visual skeleton loader cards matching the result shape.
+- [x] Update overlay right discovery panel to replace static "Trending Stories" with category pills displaying total counts.
+- [x] Remove redundant eyebrow labels and adjust overlay input text size to `text-2xl md:text-3xl font-bold` for clean visual balance and responsiveness.
+- [x] Verify compilation of the project runs successfully without any warnings or errors.
