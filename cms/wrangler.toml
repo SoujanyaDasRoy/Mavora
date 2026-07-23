@@ -24,7 +24,7 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "mavora-cms"
-database_id = "REPLACE_WITH_REAL_ID_AFTER_CREATE"
+database_id = "a4102f3b-7b6c-4ab8-854f-67ad5254e8ee"
 
 [[r2_buckets]]
 binding = "MEDIA_BUCKET"
