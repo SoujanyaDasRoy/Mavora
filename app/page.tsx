@@ -60,10 +60,10 @@ export default function HomePage() {
 
           {/* TOP STORY */}
           {hero && (
-            <RevealSection className="mb-9">
+            <RevealSection className="mb-6">
               <SectionLabel>Top Story</SectionLabel>
 
-              <div className="relative w-full h-[380px] sm:h-[460px] md:h-[500px] rounded-xl overflow-hidden group flex items-end">
+              <div className="relative w-full h-[280px] sm:h-[340px] md:h-[380px] rounded-xl overflow-hidden group flex items-end">
                 {hero.frontmatter.ogImage && (
                   <img
                     src={hero.frontmatter.ogImage}
@@ -119,7 +119,7 @@ export default function HomePage() {
             </RevealSection>
           )}
 
-          <Separator className="bg-[var(--color-border)] mb-9" />
+          <Separator className="bg-[var(--color-border)] mb-6" />
 
           {/* FEATURED */}
           {featured.length > 0 && (
