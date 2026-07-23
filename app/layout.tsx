@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Playfair_Display, JetBrains_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, Cormorant_Garamond, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SITE_URL } from "@/lib/site";
@@ -31,9 +31,9 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// Article headings only — Playfair Display is a high-contrast serif,
+// Article headings only — Cormorant Garamond is a highly elegant, sharp, high-contrast serif,
 // used to give long-form article titles a distinct editorial feel.
-const playfairDisplay = Playfair_Display({
+const cormorantGaramond = Cormorant_Garamond({
   variable: "--font-article",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -73,7 +73,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${cormorantGaramond.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>
