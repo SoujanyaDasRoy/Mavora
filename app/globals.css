@@ -32,15 +32,15 @@
 }
 
 :root {
-  /* Mavora editorial tokens — light mode */
-  --color-bg:            #F5F5F5;
-  --color-bg-secondary:  #EEEEEE;
-  --color-bg-tertiary:   #E6E6E6;
+  /* Mavora editorial tokens — light mode (warm book-like cream theme) */
+  --color-bg:            #FAF6EE;
+  --color-bg-secondary:  #F3EDE0;
+  --color-bg-tertiary:   #EAE2D2;
   --color-fg:            #0d0d0d;
-  --color-fg-muted:      #5a5a5a;
-  --color-fg-subtle:     #6b6b6b; /* was #888888 — failed WCAG AA (3.25:1) against #F5F5F5 bg; this passes at ~4.9:1 */
-  --color-border:        #DEDEDE;
-  --color-border-strong: #C8C8C8;
+  --color-fg-muted:      #5C5850;
+  --color-fg-subtle:     #6E6A60;
+  --color-border:        #E5DEC9;
+  --color-border-strong: #D8CEB4;
   --color-accent:        #cf2743;
   --color-accent-hover:  #b31f38;
 
@@ -55,22 +55,22 @@
   --font-mono:    "JetBrains Mono", ui-monospace, monospace;
   --font-article: "Outfit", "Inter", sans-serif;
 
-  /* Shadcn CSS vars — light mode #F5F5F5 = rgb(245,245,245) */
-  --background:         245 245 245;
+  /* Shadcn CSS vars — light mode (warm book-like cream theme) */
+  --background:         250 246 238; /* #FAF6EE */
   --foreground:         13 13 13;
-  --card:               245 245 245;
+  --card:               250 246 238;
   --card-foreground:    13 13 13;
-  --popover:            245 245 245;
+  --popover:            250 246 238;
   --popover-foreground: 13 13 13;
   --primary:            207 39 67;
   --primary-foreground: 255 255 255;
-  --secondary:          238 238 238;
+  --secondary:          243 237 224; /* #F3EDE0 */
   --secondary-foreground: 13 13 13;
-  --muted:              238 238 238;
-  --muted-foreground:   90 90 90;
+  --muted:              243 237 224;
+  --muted-foreground:   92 88 80;    /* #5C5850 */
   --destructive:        239 68 68;
-  --border:             222 222 222;
-  --input:              222 222 222;
+  --border:             229 222 201; /* #E5DEC9 */
+  --input:              229 222 201;
   --ring:               207 39 67;
   --radius:             0.5rem;
 }
