@@ -6,20 +6,40 @@ import { Badge } from '@/components/ui/badge'
 import { PILLAR_LABELS } from '@/lib/pillars'
 import { estimateReadingTime } from '@/lib/readingTime'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Post } from '@/lib/content'
 
 interface TopStoriesCarouselProps {
   posts: Post[]
 }
 
+const variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? '100%' : '-100%',
+    opacity: 0.9,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    zIndex: 10,
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? '100%' : '-100%',
+    opacity: 0.9,
+    zIndex: 0,
+  }),
+}
+
 export function TopStoriesCarousel({ posts }: TopStoriesCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [direction, setDirection] = useState(1) // 1 for right, -1 for left
   const [isPaused, setIsPaused] = useState(false)
 
   useEffect(() => {
     if (isPaused || !posts || posts.length <= 1) return
 
     const interval = setInterval(() => {
+      setDirection(1)
       setActiveIndex((prev) => (prev === posts.length - 1 ? 0 : prev + 1))
     }, 6000) // Slide every 6 seconds
 
@@ -29,96 +49,101 @@ export function TopStoriesCarousel({ posts }: TopStoriesCarouselProps) {
   if (!posts || posts.length === 0) return null
 
   const handlePrev = () => {
+    setDirection(-1)
     setActiveIndex((prev) => (prev === 0 ? posts.length - 1 : prev - 1))
   }
 
   const handleNext = () => {
+    setDirection(1)
     setActiveIndex((prev) => (prev === posts.length - 1 ? 0 : prev + 1))
   }
+
+  const post = posts[activeIndex]
+  const readingMinutes = estimateReadingTime(post.content)
+  const publishedDate = new Date(post.frontmatter.publishedAt).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
 
   return (
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full h-[320px] sm:h-[380px] md:h-[440px] rounded-xl overflow-hidden group"
+      className="relative w-full h-[320px] sm:h-[380px] md:h-[440px] rounded-xl overflow-hidden group bg-neutral-900"
     >
-      {posts.map((post, idx) => {
-        const isActive = idx === activeIndex
-        const readingMinutes = estimateReadingTime(post.content)
-        const publishedDate = new Date(post.frontmatter.publishedAt).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        })
+      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+        <motion.div
+          key={post.slug}
+          custom={direction}
+          variants={variants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{
+            x: { type: 'spring', stiffness: 500, damping: 40 },
+            opacity: { duration: 0.2 }
+          }}
+          className="absolute inset-0 w-full h-full"
+        >
+          {post.frontmatter.ogImage && (
+            <img
+              src={post.frontmatter.ogImage}
+              alt={post.frontmatter.title}
+              className="absolute inset-0 w-full h-full object-cover object-top"
+            />
+          )}
 
-        return (
-          <div
-            key={post.slug}
-            className={`absolute inset-0 w-full h-full transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-              isActive
-                ? 'opacity-100 scale-100 pointer-events-auto z-10'
-                : 'opacity-0 scale-[1.02] pointer-events-none z-0'
-            }`}
-          >
-            {post.frontmatter.ogImage && (
-              <img
-                src={post.frontmatter.ogImage}
-                alt={post.frontmatter.title}
-                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.01]"
-              />
-            )}
+          {/* Dark gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent z-10" />
 
-            {/* Dark gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent" />
+          {/* Content Overlay */}
+          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6 md:p-8 w-full flex flex-col gap-2 z-20">
+            <div>
+              <Badge
+                className="border-none bg-[var(--color-accent)] hover:bg-[var(--color-accent)] text-white text-[9px] font-semibold uppercase tracking-widest rounded-[3px] px-1.5 py-0.5 h-auto leading-[1.6]"
+              >
+                {PILLAR_LABELS[post.pillar] ?? post.pillar}
+              </Badge>
+            </div>
 
-            {/* Content Overlay */}
-            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6 md:p-8 w-full flex flex-col gap-2 z-20">
-              <div>
-                <Badge
-                  className="border-none bg-[var(--color-accent)] hover:bg-[var(--color-accent)] text-white text-[9px] font-semibold uppercase tracking-widest rounded-[3px] px-1.5 py-0.5 h-auto leading-[1.6]"
-                >
-                  {PILLAR_LABELS[post.pillar] ?? post.pillar}
-                </Badge>
+            <Link href={`/${post.pillar}/${post.slug}`} className="block max-w-4xl">
+              <h2 className="font-article font-bold text-white text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] leading-[1.1] tracking-[-0.01em] hover:text-neutral-200 transition-colors line-clamp-2">
+                {post.frontmatter.title}
+              </h2>
+            </Link>
+
+            <p className="text-[12.5px] sm:text-[13px] text-white/80 max-w-2xl leading-[1.6] line-clamp-1 sm:line-clamp-2">
+              {post.frontmatter.description}
+            </p>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 mt-2 pt-2 border-t border-white/10">
+              <div className="flex items-center gap-2 text-[11px] text-white/60">
+                {post.frontmatter.author && (
+                  <>
+                    <span className="font-medium text-white/80">
+                      {post.frontmatter.author}
+                    </span>
+                    <span className="text-white/40">·</span>
+                  </>
+                )}
+                <time dateTime={post.frontmatter.publishedAt} className="tabular-nums">
+                  {publishedDate}
+                </time>
+                <span className="text-white/40">·</span>
+                <span>{readingMinutes} min read</span>
               </div>
 
-              <Link href={`/${post.pillar}/${post.slug}`} className="block max-w-4xl">
-                <h2 className="font-article font-bold text-white text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] leading-[1.1] tracking-[-0.01em] hover:text-neutral-200 transition-colors line-clamp-2">
-                  {post.frontmatter.title}
-                </h2>
+              <Link
+                href={`/${post.pillar}/${post.slug}`}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-white bg-white/20 hover:bg-white/30 backdrop-blur transition-all active:scale-[0.97]"
+              >
+                Read Article →
               </Link>
-
-              <p className="text-[12.5px] sm:text-[13px] text-white/80 max-w-2xl leading-[1.6] line-clamp-1 sm:line-clamp-2">
-                {post.frontmatter.description}
-              </p>
-
-              <div className="flex flex-wrap items-center justify-between gap-4 mt-2 pt-2 border-t border-white/10">
-                <div className="flex items-center gap-2 text-[11px] text-white/60">
-                  {post.frontmatter.author && (
-                    <>
-                      <span className="font-medium text-white/80">
-                        {post.frontmatter.author}
-                      </span>
-                      <span className="text-white/40">·</span>
-                    </>
-                  )}
-                  <time dateTime={post.frontmatter.publishedAt} className="tabular-nums">
-                    {publishedDate}
-                  </time>
-                  <span className="text-white/40">·</span>
-                  <span>{readingMinutes} min read</span>
-                </div>
-
-                <Link
-                  href={`/${post.pillar}/${post.slug}`}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-white bg-white/20 hover:bg-white/30 backdrop-blur transition-all active:scale-[0.97]"
-                >
-                  Read Article →
-                </Link>
-              </div>
             </div>
           </div>
-        )
-      })}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Navigation Arrows */}
       {posts.length > 1 && (
@@ -146,7 +171,10 @@ export function TopStoriesCarousel({ posts }: TopStoriesCarouselProps) {
           {posts.map((_, idx) => (
             <button
               key={idx}
-              onClick={() => setActiveIndex(idx)}
+              onClick={() => {
+                setDirection(idx > activeIndex ? 1 : -1)
+                setActiveIndex(idx)
+              }}
               className={`size-1.5 rounded-full transition-all duration-300 ${
                 idx === activeIndex ? 'bg-white w-3' : 'bg-white/40 hover:bg-white/60'
               }`}
