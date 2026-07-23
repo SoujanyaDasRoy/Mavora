@@ -73,3 +73,14 @@
 - [x] Change sidebar latest news items title hover color to `hover:text-[var(--color-accent)]` in `app/page.tsx`.
 - [x] Simplify newsletter section by removing the 3-column benefits block in `app/page.tsx`.
 - [x] Verify compilation and update checklist.
+
+## Homepage Layout Modifications and Visual Styling Updates
+
+- [x] Update `app/layout.tsx` to replace `Fraunces` with `Playfair_Display` and inject film-grain overlay div in `<body>`.
+- [x] Update `app/page.tsx` to add the trending tags row immediately above the main content grid.
+- [x] Update `app/page.tsx` to wrap sidebar widgets inside `<div className="flex flex-col gap-12">` and remove all `<Separator>` elements inside the sidebar column.
+- [x] Remove the sidebar newsletter subscription card widget.
+- [x] Add a numbered "Popular Stories" widget in the sidebar (displaying 3 popular posts sliced from the `posts` index with ranking tags: `01`, `02`, `03` using a muted monospace font).
+- [x] Add reading time metadata (e.g. `• 4 min read`) next to the dates in the sidebar news/stories lists.
+- [x] Verify compilation of the project runs successfully without any warnings or errors.
+

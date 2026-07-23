@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Fraunces, JetBrains_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SITE_URL } from "@/lib/site";
@@ -31,14 +31,12 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// Article headings only — Fraunces is a soft, high-contrast serif with
-// genuinely curved terminals (its defining trait vs. a standard book
-// serif), used to give long-form article titles a distinct editorial
-// feel against the geometric Space Grotesk used for nav/card chrome.
-const fraunces = Fraunces({
+// Article headings only — Playfair Display is a high-contrast serif,
+// used to give long-form article titles a distinct editorial feel.
+const playfairDisplay = Playfair_Display({
   variable: "--font-article",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   display: "swap",
 });
@@ -75,7 +73,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${fraunces.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -92,6 +90,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <div className="pointer-events-none fixed inset-0 z-50 bg-noise opacity-[0.015] mix-blend-overlay" />
         <Header />
         {children}
         <Footer />

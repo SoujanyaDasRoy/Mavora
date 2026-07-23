@@ -5,7 +5,6 @@ import { RevealSection } from '@/components/RevealSection'
 import { SectionLabel } from '@/components/SectionLabel'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { estimateReadingTime } from '@/lib/readingTime'
@@ -32,9 +31,26 @@ export default function HomePage() {
   const rest = posts.slice(1)
   const latestNews = rest.slice(0, 3)
   const feedPosts = rest.slice(3)
+  const popularPosts = posts.slice(0, 3)
 
   return (
     <main className="mx-auto max-w-[1440px] px-5 md:px-8 py-8 md:py-10">
+
+      {/* Trending Tags Bar */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-8 pb-4 border-b border-[var(--color-border)]">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">Trending:</span>
+        <div className="flex flex-wrap items-center gap-2">
+          {['AI', 'NextJS', 'SaaS', 'DeepWork', 'Productivity', 'Startups'].map((tag) => (
+            <Link
+              key={tag}
+              href={`/search?q=${tag}`}
+              className="px-2.5 py-1 text-[11.5px] font-mono rounded-md bg-[var(--color-bg-secondary)] hover:bg-[var(--color-border)] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] border border-[var(--color-border)] transition-colors"
+            >
+              #{tag}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <div className="grid lg:grid-cols-[1fr_296px] gap-10 lg:gap-12 items-start">
 
@@ -117,62 +133,80 @@ export default function HomePage() {
 
         {/* ── RIGHT — sidebar ──────────────────────────────────── */}
         <aside className="lg:border-l lg:border-[var(--color-border)] lg:pl-8 lg:sticky lg:top-[86px] lg:self-start">
+          <div className="flex flex-col gap-12">
 
-          {/* LATEST NEWS */}
-          {latestNews.length > 0 && (
-            <div className="mb-7">
-              <SectionLabel>Latest News</SectionLabel>
+            {/* LATEST NEWS */}
+            {latestNews.length > 0 && (
+              <div>
+                <SectionLabel>Latest News</SectionLabel>
 
-              <div className="flex flex-col divide-y divide-[var(--color-border)]">
-                {latestNews.map((post) => (
-                  <article key={`${post.pillar}-${post.slug}`} className="group flex gap-3 py-3 first:pt-0">
-                    {post.frontmatter.ogImage && (
-                      <Link
-                        href={`/${post.pillar}/${post.slug}`}
-                        aria-hidden="true"
-                        tabIndex={-1}
-                        className="shrink-0 overflow-hidden rounded"
-                      >
-                        <img
-                          src={post.frontmatter.ogImage}
-                          alt={post.frontmatter.title}
-                          className="w-[60px] h-[60px] object-cover object-top transition-transform duration-300 group-hover:scale-[1.06]"
-                        />
-                      </Link>
-                    )}
-                    <div className="min-w-0 flex flex-col gap-1">
-                      <Link href={`/${post.pillar}/${post.slug}`}>
-                        <p className="font-article text-[13.5px] font-semibold leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-3">
-                          {post.frontmatter.title}
-                        </p>
-                      </Link>
-                      <DateLabel date={post.frontmatter.publishedAt} />
-                    </div>
-                  </article>
-                ))}
+                <div className="flex flex-col divide-y divide-[var(--color-border)]">
+                  {latestNews.map((post) => (
+                    <article key={`${post.pillar}-${post.slug}`} className="group flex gap-3 py-3 first:pt-0">
+                      {post.frontmatter.ogImage && (
+                        <Link
+                          href={`/${post.pillar}/${post.slug}`}
+                          aria-hidden="true"
+                          tabIndex={-1}
+                          className="shrink-0 overflow-hidden rounded"
+                        >
+                          <img
+                            src={post.frontmatter.ogImage}
+                            alt={post.frontmatter.title}
+                            className="w-[60px] h-[60px] object-cover object-top transition-transform duration-300 group-hover:scale-[1.06]"
+                          />
+                        </Link>
+                      )}
+                      <div className="min-w-0 flex flex-col gap-1">
+                        <Link href={`/${post.pillar}/${post.slug}`}>
+                          <p className="font-article text-[13.5px] font-semibold leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-3">
+                            {post.frontmatter.title}
+                          </p>
+                        </Link>
+                        <div className="flex items-center gap-1.5 text-[11px] text-[var(--color-fg-subtle)]">
+                          <DateLabel date={post.frontmatter.publishedAt} />
+                          <span>•</span>
+                          <span>{estimateReadingTime(post.content)} min read</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <Separator className="bg-[var(--color-border)] mb-7" />
+            {/* POPULAR STORIES */}
+            {popularPosts.length > 0 && (
+              <div>
+                <SectionLabel>Popular Stories</SectionLabel>
 
-          {/* Newsletter mini CTA */}
-          <div className="rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] p-5">
-            <p className="font-display font-semibold text-[0.9rem] tracking-[-0.01em] mb-1.5">
-              Stay ahead of the curve
-            </p>
-            <p className="text-[11.5px] text-[var(--color-fg-muted)] mb-4 leading-relaxed">
-              Weekly insights on AI, tech, productivity and business.
-            </p>
-            <Link
-              href="#newsletter"
-              className={cn(
-                buttonVariants({ size: 'default' }),
-                'w-full bg-[var(--color-fg)] hover:bg-[var(--color-fg-muted)] text-[var(--color-bg)] text-[12px] font-bold h-8 rounded-md transition-colors'
-              )}
-            >
-              Subscribe Free →
-            </Link>
+                <div className="flex flex-col divide-y divide-[var(--color-border)]">
+                  {popularPosts.map((post, index) => {
+                    const rank = String(index + 1).padStart(2, '0')
+                    return (
+                      <article key={`popular-${post.pillar}-${post.slug}`} className="group flex gap-3 py-3 first:pt-0">
+                        <span className="font-mono text-[13px] font-medium text-[var(--color-fg-subtle)] opacity-60 shrink-0 w-5 pt-0.5">
+                          {rank}
+                        </span>
+                        <div className="min-w-0 flex flex-col gap-1">
+                          <Link href={`/${post.pillar}/${post.slug}`}>
+                            <p className="font-article text-[13.5px] font-semibold leading-[1.3] group-hover:text-[var(--color-accent)] transition-colors line-clamp-3">
+                              {post.frontmatter.title}
+                            </p>
+                          </Link>
+                          <div className="flex items-center gap-1.5 text-[11px] text-[var(--color-fg-subtle)]">
+                            <DateLabel date={post.frontmatter.publishedAt} />
+                            <span>•</span>
+                            <span>{estimateReadingTime(post.content)} min read</span>
+                          </div>
+                        </div>
+                      </article>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
           </div>
         </aside>
       </div>
