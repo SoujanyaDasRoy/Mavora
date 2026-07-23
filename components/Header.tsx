@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
@@ -26,6 +27,7 @@ function MenuIcon({ className }: { className?: string }) {
 }
 
 export function Header() {
+  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -77,6 +79,13 @@ export function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    router.push('/search?q=' + encodeURIComponent(searchQuery))
+                    setSearchOpen(false)
+                    setSearchQuery('')
+                  }
+                }}
                 placeholder="Search articles, topics..."
                 className="flex-1 bg-transparent outline-none text-sm text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] border-none focus:ring-0 p-0"
                 autoFocus

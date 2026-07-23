@@ -1,26 +1,19 @@
-import { SearchBox } from '@/components/SearchBox'
+import { Suspense } from 'react'
 import { Container } from '@/components/Container'
-import { PageHeader } from '@/components/PageHeader'
+import { SearchPageClient } from '@/components/SearchPageClient'
+import { getAllPosts } from '@/lib/content'
 
 export const dynamic = 'force-static'
 
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>
-}) {
-  const { q } = await searchParams
-  const initialQuery = q ?? ''
+export default function SearchPage() {
+  const posts = getAllPosts()
 
   return (
     <main>
-      <Container narrow className="pb-16">
-        <PageHeader
-          eyebrow="Explore"
-          title="Search"
-          dek="Find articles across AI, technology, productivity, and business."
-        />
-        <SearchBox query={initialQuery} />
+      <Container narrow={false} className="py-12">
+        <Suspense fallback={<p className="text-center py-12">Loading search...</p>}>
+          <SearchPageClient posts={posts} />
+        </Suspense>
       </Container>
     </main>
   )
