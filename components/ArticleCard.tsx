@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Post } from '@/lib/content'
-import { PILLAR_LABELS } from '@/lib/pillars'
+import { PILLAR_LABELS, PILLAR_COLORS, type Pillar } from '@/lib/pillars'
 import { estimateReadingTime } from '@/lib/readingTime'
 import { cn } from '@/lib/utils'
 
@@ -10,15 +10,19 @@ interface ArticleCardProps {
 }
 
 function PillarBadge({ pillar }: { pillar: string }) {
+  const colors = PILLAR_COLORS[pillar as Pillar] || {
+    text: 'text-[var(--color-fg-muted)]',
+    bg: 'bg-[var(--color-bg-secondary)]',
+    border: 'border-[var(--color-border-strong)]',
+  }
   return (
     <span className={cn(
       "inline-flex items-center text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded border shrink-0 w-fit",
-      pillar === 'ai' && "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-900/30",
-      pillar === 'technology' && "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border-sky-200/50 dark:border-sky-900/30",
-      pillar === 'productivity' && "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border-green-200/50 dark:border-green-900/30",
-      pillar === 'business' && "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-200/50 dark:border-red-900/30"
+      colors.text,
+      colors.bg,
+      colors.border
     )}>
-      {PILLAR_LABELS[pillar as keyof typeof PILLAR_LABELS] ?? pillar}
+      {PILLAR_LABELS[pillar as Pillar] ?? pillar}
     </span>
   )
 }

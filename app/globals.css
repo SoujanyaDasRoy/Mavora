@@ -44,11 +44,22 @@
   --color-accent:        #cf2743;
   --color-accent-hover:  #b31f38;
 
-  /* Pillar badge colours */
-  --badge-ai:           #7c3aed;
-  --badge-technology:   #0284c7;
-  --badge-productivity: #16a34a;
-  --badge-business:     #c8102e;
+  /* Category colors (Warm, sophisticated tones matching cream theme) */
+  --color-ai-text:       #6C4BB4;
+  --color-ai-bg:         #F3EFFF;
+  --color-ai-border:     #E5DFFF;
+
+  --color-tech-text:     #1A7492;
+  --color-tech-bg:       #EEF9FC;
+  --color-tech-border:   #D1EDF4;
+
+  --color-prod-text:     #2C7A3C;
+  --color-prod-bg:       #F0F9F1;
+  --color-prod-border:   #D7EED9;
+
+  --color-bus-text:      #CF2743;
+  --color-bus-bg:        #FFF0F2;
+  --color-bus-border:    #FFD4DA;
 
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-sans:    "Inter", system-ui, sans-serif;
@@ -85,6 +96,23 @@
   --color-fg-subtle:     #a8a8a8; /* was #777777 — failed WCAG AA (2.6:1) against #393836 bg; this passes at ~4.9:1 */
   --color-border:        #4A4846;
   --color-border-strong: #565452;
+
+  /* Category colors (Warm, sophisticated tones matching dark warm theme) */
+  --color-ai-text:       #B392FF;
+  --color-ai-bg:         rgba(124, 93, 179, 0.15);
+  --color-ai-border:     rgba(124, 93, 179, 0.25);
+
+  --color-tech-text:     #5CC0E2;
+  --color-tech-bg:       rgba(22, 90, 114, 0.15);
+  --color-tech-border:   rgba(39, 122, 153, 0.25);
+
+  --color-prod-text:     #76D087;
+  --color-prod-bg:       rgba(36, 101, 53, 0.15);
+  --color-prod-border:   rgba(53, 142, 75, 0.25);
+
+  --color-bus-text:      #FF788D;
+  --color-bus-bg:        rgba(150, 22, 43, 0.15);
+  --color-bus-border:    rgba(179, 31, 56, 0.25);
 
   /* Shadcn dark vars — #393836 = rgb(57,56,54) */
   --background:         57 56 54;

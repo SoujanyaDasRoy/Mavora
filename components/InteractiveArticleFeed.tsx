@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { RevealSection } from '@/components/RevealSection'
 import { SectionLabel } from '@/components/SectionLabel'
 import type { Post } from '@/lib/content'
-import { PILLAR_LABELS, type Pillar } from '@/lib/pillars'
+import { PILLAR_LABELS, PILLAR_COLORS, type Pillar } from '@/lib/pillars'
 
 interface InteractiveArticleFeedProps {
   posts: Post[]
@@ -26,10 +26,20 @@ const TABS = [
 type TabType = 'all' | Pillar
 
 function PillarTag({ pillar }: { pillar: string }) {
+  const colors = PILLAR_COLORS[pillar as Pillar] || {
+    text: 'text-[var(--color-fg-muted)]',
+    bg: 'bg-[var(--color-bg-secondary)]',
+    border: 'border-[var(--color-border-strong)]',
+  }
   return (
     <Badge
       variant="outline"
-      className="border-[var(--color-border-strong)] text-[var(--color-fg-muted)] text-[9px] font-semibold uppercase tracking-widest rounded-[3px] px-1.5 py-0.5 h-auto leading-[1.6] bg-[var(--color-bg-secondary)]"
+      className={cn(
+        "text-[9px] font-semibold uppercase tracking-widest rounded-[3px] px-1.5 py-0.5 h-auto leading-[1.6] border shrink-0 w-fit",
+        colors.text,
+        colors.bg,
+        colors.border
+      )}
     >
       {PILLAR_LABELS[pillar as Pillar] ?? pillar}
     </Badge>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { SearchEntry } from '@/lib/search-index'
-import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
+import { PILLARS, PILLAR_LABELS, PILLAR_COLORS, type Pillar } from '@/lib/pillars'
 import { cn } from '@/lib/utils'
 import { Search, X } from 'lucide-react'
 
@@ -37,9 +37,16 @@ function SearchResultItem({
   query,
   variant,
 }: SearchResultItemProps) {
+  const colors = PILLAR_COLORS[entry.pillar as Pillar] || {
+    text: 'text-[var(--color-fg-muted)]',
+    bg: 'bg-[var(--color-bg-secondary)]',
+    border: 'border-[var(--color-border-strong)]',
+  }
   const badgeClass = cn(
     'font-semibold uppercase tracking-widest rounded border shrink-0',
-    'text-[var(--color-accent)] bg-[var(--color-accent)]/8 border-[var(--color-accent)]/20',
+    colors.text,
+    colors.bg,
+    colors.border,
     variant === 'overlay' ? 'text-[10px] px-2 py-0.5' : 'text-[9px] px-1.5 py-0.5'
   )
 

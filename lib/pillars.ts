@@ -12,3 +12,26 @@ export const PILLAR_LABELS: Record<Pillar, string> = {
   productivity: 'Productivity',
   business: 'Business',
 }
+
+export const PILLAR_COLORS: Record<Pillar, { text: string; bg: string; border: string }> = {
+  ai: {
+    text: 'text-[var(--color-ai-text)]',
+    bg: 'bg-[var(--color-ai-bg)]',
+    border: 'border-[var(--color-ai-border)]',
+  },
+  technology: {
+    text: 'text-[var(--color-tech-text)]',
+    bg: 'bg-[var(--color-tech-bg)]',
+    border: 'border-[var(--color-tech-border)]',
+  },
+  productivity: {
+    text: 'text-[var(--color-prod-text)]',
+    bg: 'bg-[var(--color-prod-bg)]',
+    border: 'border-[var(--color-prod-border)]',
+  },
+  business: {
+    text: 'text-[var(--color-bus-text)]',
+    bg: 'bg-[var(--color-bus-bg)]',
+    border: 'border-[var(--color-bus-border)]',
+  },
+}
