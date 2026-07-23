@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { PILLAR_LABELS } from '@/lib/pillars'
@@ -14,6 +14,17 @@ interface TopStoriesCarouselProps {
 
 export function TopStoriesCarousel({ posts }: TopStoriesCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+
+  useEffect(() => {
+    if (isPaused || !posts || posts.length <= 1) return
+
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev === posts.length - 1 ? 0 : prev + 1))
+    }, 6000) // Slide every 6 seconds
+
+    return () => clearInterval(interval)
+  }, [isPaused, posts])
 
   if (!posts || posts.length === 0) return null
 
@@ -26,7 +37,11 @@ export function TopStoriesCarousel({ posts }: TopStoriesCarouselProps) {
   }
 
   return (
-    <div className="relative w-full h-[320px] sm:h-[380px] md:h-[440px] rounded-xl overflow-hidden group">
+    <div
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      className="relative w-full h-[320px] sm:h-[380px] md:h-[440px] rounded-xl overflow-hidden group"
+    >
       {posts.map((post, idx) => {
         const isActive = idx === activeIndex
         const readingMinutes = estimateReadingTime(post.content)
