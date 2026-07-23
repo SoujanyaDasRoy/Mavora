@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getAllPosts } from '@/lib/content'
-import { PILLARS, PILLAR_LABELS } from '@/lib/pillars'
+import { PILLAR_LABELS } from '@/lib/pillars'
 import { RevealSection } from '@/components/RevealSection'
 import { SectionLabel } from '@/components/SectionLabel'
 import { Badge } from '@/components/ui/badge'
@@ -9,19 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { estimateReadingTime } from '@/lib/readingTime'
-import { MessageSquare } from 'lucide-react'
-
-// ─── Pillar badge — neutral, no red ───────────────────────────
-function PillarTag({ pillar }: { pillar: string }) {
-  return (
-    <Badge
-      variant="outline"
-      className="border-[var(--color-border-strong)] text-[var(--color-fg-muted)] text-[9px] font-semibold uppercase tracking-widest rounded-[3px] px-1.5 py-0 h-auto leading-[1.6] bg-[var(--color-bg-secondary)]"
-    >
-      {PILLAR_LABELS[pillar as keyof typeof PILLAR_LABELS] ?? pillar}
-    </Badge>
-  )
-}
+import InteractiveArticleFeed from '@/components/InteractiveArticleFeed'
 
 // ─── Date label ────────────────────────────────────────────────
 function DateLabel({ date }: { date: string }) {
@@ -40,23 +28,13 @@ function DateLabel({ date }: { date: string }) {
 export default function HomePage() {
   const posts = getAllPosts()
 
-  const [hero, ...rest] = posts
-  const latestNews     = rest.slice(0, 6)
-  const featured       = rest.slice(6, 10)
-  const latestArticles = rest.slice(10)
-
-  const categoryCounts = PILLARS.reduce<Record<string, number>>((acc, p) => {
-    acc[p] = posts.filter((post) => post.pillar === p).length
-    return acc
-  }, {})
+  const hero = posts[0]
+  const rest = posts.slice(1)
+  const latestNews = rest.slice(0, 3)
+  const feedPosts = rest.slice(3)
 
   return (
     <main className="mx-auto max-w-[1440px] px-5 md:px-8 py-8 md:py-10">
-
-      {/* Brand Manifesto Strip */}
-      <div className="mb-6 py-2.5 px-4 rounded-lg bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/10 text-[var(--color-accent)] text-center text-[10px] sm:text-xs font-bold tracking-[0.12em] font-display">
-        ⚡ KNOWLEDGE FOR THE AMBITIOUS · AI · TECHNOLOGY · PRODUCTIVITY · BUSINESS
-      </div>
 
       <div className="grid lg:grid-cols-[1fr_296px] gap-10 lg:gap-12 items-start">
 
@@ -65,7 +43,7 @@ export default function HomePage() {
 
           {/* TOP STORY */}
           {hero && (
-            <RevealSection className="mb-5">
+            <RevealSection className="mb-8">
               <SectionLabel>Top Story</SectionLabel>
 
               <div className="relative w-full h-[300px] sm:h-[380px] md:h-[440px] rounded-xl overflow-hidden group flex items-end">
@@ -133,118 +111,8 @@ export default function HomePage() {
             </RevealSection>
           )}
 
-          {/* FEATURED */}
-          {featured.length > 0 && (
-            <RevealSection className="mb-9" delay={0.05}>
-              <SectionLabel>Featured</SectionLabel>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {featured.map((post, idx) => (
-                  <article
-                    key={`${post.pillar}-${post.slug}`}
-                    className={cn(
-                      "group flex flex-col gap-3",
-                      idx === 0 ? "col-span-2 md:col-span-2" : "col-span-1 md:col-span-1"
-                    )}
-                  >
-                    {post.frontmatter.ogImage && (
-                      <Link
-                        href={`/${post.pillar}/${post.slug}`}
-                        aria-hidden="true"
-                        tabIndex={-1}
-                        className={cn(
-                          "block overflow-hidden rounded-lg w-full relative",
-                          idx === 0 ? "aspect-[16/9]" : "aspect-square"
-                        )}
-                      >
-                        <img
-                          src={post.frontmatter.ogImage}
-                          alt={post.frontmatter.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                        />
-                      </Link>
-                    )}
-                    <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                      <div>
-                        <PillarTag pillar={post.pillar} />
-                      </div>
-                      <Link href={`/${post.pillar}/${post.slug}`}>
-                        <h3
-                          className={cn(
-                            "font-article font-semibold leading-[1.3] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3",
-                            idx === 0
-                              ? "text-[1.15rem] sm:text-[1.25rem] md:text-[1.35rem]"
-                              : "text-[0.98rem] sm:text-[1.05rem]"
-                          )}
-                        >
-                          {post.frontmatter.title}
-                        </h3>
-                      </Link>
-                      <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-[11px] text-[var(--color-fg-subtle)] mt-auto pt-1">
-                        {post.frontmatter.author && (
-                          <>
-                            <span className="font-bold uppercase text-[var(--color-accent)] tracking-wider">
-                              {post.frontmatter.author}
-                            </span>
-                            <span className="text-[var(--color-border-strong)]">·</span>
-                          </>
-                        )}
-                        <DateLabel date={post.frontmatter.publishedAt} />
-                        <span className="text-[var(--color-border-strong)]">·</span>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3 text-[var(--color-fg-subtle)]" />
-                          <span className="font-medium tabular-nums">{(post.slug.length % 7) + 2}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </RevealSection>
-          )}
-
-          <Separator className="bg-[var(--color-border)] mb-9" />
-
-          {/* LATEST ARTICLES */}
-          {latestArticles.length > 0 && (
-            <RevealSection delay={0.1}>
-              <SectionLabel>Latest Articles</SectionLabel>
-
-              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
-                {latestArticles.map((post) => (
-                  <article key={`${post.pillar}-${post.slug}`} className="group flex gap-3.5 items-start">
-                    {post.frontmatter.ogImage && (
-                      // aria-hidden + tabIndex=-1: heading below links here too.
-                      <Link
-                        href={`/${post.pillar}/${post.slug}`}
-                        aria-hidden="true"
-                        tabIndex={-1}
-                        className="shrink-0 overflow-hidden rounded-md"
-                      >
-                        <img
-                          src={post.frontmatter.ogImage}
-                          alt={post.frontmatter.title}
-                          className="w-[80px] h-[60px] object-cover object-top transition-transform duration-300 group-hover:scale-[1.05]"
-                        />
-                      </Link>
-                    )}
-                    <div className="min-w-0 flex flex-col gap-1.5">
-                      <PillarTag pillar={post.pillar} />
-                      <Link href={`/${post.pillar}/${post.slug}`}>
-                        <h3 className="font-article font-semibold text-[0.95rem] leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-2">
-                          {post.frontmatter.title}
-                        </h3>
-                      </Link>
-                      <p className="text-[11.5px] text-[var(--color-fg-muted)] line-clamp-2 leading-relaxed">
-                        {post.frontmatter.description}
-                      </p>
-                      <DateLabel date={post.frontmatter.publishedAt} />
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </RevealSection>
-          )}
+          {/* INTERACTIVE ARTICLE FEED */}
+          <InteractiveArticleFeed posts={feedPosts} />
         </div>
 
         {/* ── RIGHT — sidebar ──────────────────────────────────── */}
@@ -259,7 +127,6 @@ export default function HomePage() {
                 {latestNews.map((post) => (
                   <article key={`${post.pillar}-${post.slug}`} className="group flex gap-3 py-3 first:pt-0">
                     {post.frontmatter.ogImage && (
-                      // aria-hidden + tabIndex=-1: title below links here too.
                       <Link
                         href={`/${post.pillar}/${post.slug}`}
                         aria-hidden="true"
@@ -289,30 +156,6 @@ export default function HomePage() {
 
           <Separator className="bg-[var(--color-border)] mb-7" />
 
-          {/* CATEGORIES */}
-          <div className="mb-7">
-            <SectionLabel>Categories</SectionLabel>
-
-            <div className="flex flex-wrap gap-2">
-              {PILLARS.map((pillar) => (
-                <Link
-                  key={pillar}
-                  href={`/${pillar}`}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-[var(--color-fg-subtle)] hover:bg-[var(--color-bg-tertiary)] transition-all group"
-                >
-                  <span className="text-[12px] font-medium text-[var(--color-fg-muted)] group-hover:text-[var(--color-fg)] transition-colors">
-                    {PILLAR_LABELS[pillar]}
-                  </span>
-                  <span className="text-[10px] font-semibold tabular-nums text-[var(--color-fg-subtle)] bg-[var(--color-bg-tertiary)] group-hover:bg-[var(--color-bg-secondary)] px-1.5 py-0.5 rounded-full transition-colors">
-                    {categoryCounts[pillar] ?? 0}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <Separator className="bg-[var(--color-border)] mb-7" />
-
           {/* Newsletter mini CTA */}
           <div className="rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] p-5">
             <p className="font-display font-semibold text-[0.9rem] tracking-[-0.01em] mb-1.5">
@@ -321,9 +164,6 @@ export default function HomePage() {
             <p className="text-[11.5px] text-[var(--color-fg-muted)] mb-4 leading-relaxed">
               Weekly insights on AI, tech, productivity and business.
             </p>
-            {/* Dark CTA — not red, keeps page calm. Plain Link (not Button's
-                render-as-Link) since base-ui's Button injects type="button"
-                onto whatever element it renders as, which is invalid on <a>. */}
             <Link
               href="#newsletter"
               className={cn(

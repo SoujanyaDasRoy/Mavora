@@ -52,3 +52,15 @@
 - [x] Update Newsletter CTA: Add "Join 4,200+ Knowledge Seekers" social proof headline, a 3-column benefits block (AI, SaaS, productivity), and an updated trust tagline.
 - [x] Verify compiling and execution.
 
+## Clean Homepage Layout and Interactive Category-Filtering Feed
+
+- [x] Create `components/InteractiveArticleFeed.tsx` as a client component to handle dynamic topic filtering (All, AI, Technology, Productivity, Business).
+- [x] Render featured section for "All Topics" as a 3-column asymmetric grid (first post wide, other two square) followed by Latest Articles.
+- [x] Render category-specific posts in a clean 2-column grid layout with SectionLabel.
+- [x] Update `app/page.tsx` to remove the brand manifesto strip.
+- [x] Slice posts: hero (1st item), latestNews sidebar (3 items), and feedPosts (rest of posts) passed to the interactive feed.
+- [x] Remove the redundant Category list widget from the sidebar to keep layout spacing clean.
+- [x] Update `task.md` to track completed tasks.
+- [x] Verify project compilation and type-safety.
+
+
