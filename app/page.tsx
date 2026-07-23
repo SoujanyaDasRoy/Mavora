@@ -36,22 +36,6 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-[1440px] px-5 md:px-8 py-8 md:py-10">
 
-      {/* Trending Tags Bar */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-8 pb-4 border-b border-[var(--color-border)]">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">Trending:</span>
-        <div className="flex flex-wrap items-center gap-2">
-          {['AI', 'NextJS', 'SaaS', 'DeepWork', 'Productivity', 'Startups'].map((tag) => (
-            <Link
-              key={tag}
-              href={`/search?q=${tag}`}
-              className="px-2.5 py-1 text-[11.5px] font-mono rounded-md bg-[var(--color-bg-secondary)] hover:bg-[var(--color-border)] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] border border-[var(--color-border)] transition-colors"
-            >
-              #{tag}
-            </Link>
-          ))}
-        </div>
-      </div>
-
       <div className="grid lg:grid-cols-[1fr_296px] gap-10 lg:gap-12 items-start">
 
         {/* ── LEFT ────────────────────────────────────────────── */}
