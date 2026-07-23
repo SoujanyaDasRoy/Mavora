@@ -36,7 +36,6 @@ export function Header() {
   }, [])
 
   const navLinks = [
-    { label: 'Home', href: '/' },
     ...PILLARS.map((p) => ({ label: PILLAR_LABELS[p], href: `/${p}` })),
     { label: 'Newsletter', href: '/#newsletter' },
   ]
