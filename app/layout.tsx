@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Cormorant_Garamond, JetBrains_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, Outfit, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SITE_URL } from "@/lib/site";
@@ -31,13 +31,12 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// Article headings only — Cormorant Garamond is a highly elegant, sharp, high-contrast serif,
-// used to give long-form article titles a distinct editorial feel.
-const cormorantGaramond = Cormorant_Garamond({
+// Article headings — Outfit is a minimal, clean, modern geometric sans-serif,
+// perfect for tech audiences.
+const outfit = Outfit({
   variable: "--font-article",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -73,7 +72,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${cormorantGaramond.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>

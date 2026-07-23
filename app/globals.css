@@ -53,7 +53,7 @@
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-sans:    "Inter", system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, monospace;
-  --font-article: "Cormorant Garamond", Georgia, serif;
+  --font-article: "Outfit", "Inter", sans-serif;
 
   /* Shadcn CSS vars — light mode #F5F5F5 = rgb(245,245,245) */
   --background:         245 245 245;
@@ -149,7 +149,7 @@ body {
 .font-display { font-family: var(--font-display); }
 .font-sans    { font-family: var(--font-sans), system-ui, sans-serif; }
 .font-mono    { font-family: var(--font-mono), ui-monospace, monospace; }
-.font-article { font-family: var(--font-article), Georgia, serif; }
+.font-article { font-family: var(--font-article), sans-serif; }
 
 /* Hover lift card effect */
 .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
