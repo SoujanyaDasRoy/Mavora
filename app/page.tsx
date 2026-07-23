@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { estimateReadingTime } from '@/lib/readingTime'
+import { MessageSquare } from 'lucide-react'
 
 // ─── Pillar badge — neutral, no red ───────────────────────────
 function PillarTag({ pillar }: { pillar: string }) {
@@ -62,50 +63,58 @@ export default function HomePage() {
             <RevealSection className="mb-9">
               <SectionLabel>Top Story</SectionLabel>
 
-              <div className="grid sm:grid-cols-[6fr_5fr] gap-7 items-center">
+              <div className="relative w-full h-[380px] sm:h-[460px] md:h-[500px] rounded-xl overflow-hidden group flex items-end">
+                {hero.frontmatter.ogImage && (
+                  <img
+                    src={hero.frontmatter.ogImage}
+                    alt={hero.frontmatter.title}
+                    className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
+                  />
+                )}
+                
+                {/* Dark gradient overlay for contrast and readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
 
-                <div className="flex flex-col gap-3">
-                  <PillarTag pillar={hero.pillar} />
-                  <Link href={`/${hero.pillar}/${hero.slug}`} className="group">
-                    <h2 className="font-article font-semibold text-[1.9rem] md:text-[2.2rem] leading-[1.1] tracking-[-0.01em] group-hover:text-[var(--color-fg-muted)] transition-colors">
+                {/* Content Overlay */}
+                <div className="relative z-10 p-6 sm:p-8 md:p-10 w-full flex flex-col gap-3">
+                  <div>
+                    <Badge
+                      className="border-none bg-[var(--color-accent)] hover:bg-[var(--color-accent)] text-white text-[9px] font-semibold uppercase tracking-widest rounded-[3px] px-1.5 py-0.5 h-auto leading-[1.6]"
+                    >
+                      {PILLAR_LABELS[hero.pillar as keyof typeof PILLAR_LABELS] ?? hero.pillar}
+                    </Badge>
+                  </div>
+                  
+                  <Link href={`/${hero.pillar}/${hero.slug}`} className="block max-w-4xl">
+                    <h2 className="font-article font-bold text-white text-[1.8rem] sm:text-[2.2rem] md:text-[2.6rem] leading-[1.1] tracking-[-0.01em] hover:text-neutral-200 transition-colors">
                       {hero.frontmatter.title}
                     </h2>
                   </Link>
-                  <p className="text-[13.5px] text-[var(--color-fg-muted)] leading-[1.65] line-clamp-3">
+
+                  <p className="text-[13.5px] text-white/80 max-w-2xl leading-[1.65] line-clamp-2 sm:line-clamp-3">
                     {hero.frontmatter.description}
                   </p>
-                  <div className="flex items-center gap-2 text-[11px] text-[var(--color-fg-subtle)]">
+
+                  <div className="flex items-center gap-2 text-[11px] text-white/60">
                     {hero.frontmatter.author && (
                       <>
-                        <span className="font-medium text-[var(--color-fg-muted)]">
+                        <span className="font-medium text-white/80">
                           {hero.frontmatter.author}
                         </span>
-                        <span className="text-[var(--color-border-strong)]">·</span>
+                        <span className="text-white/40">·</span>
                       </>
                     )}
-                    <DateLabel date={hero.frontmatter.publishedAt} />
-                    <span className="text-[var(--color-border-strong)]">·</span>
+                    <time dateTime={hero.frontmatter.publishedAt} className="tabular-nums">
+                      {new Date(hero.frontmatter.publishedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </time>
+                    <span className="text-white/40">·</span>
                     <span>{estimateReadingTime(hero.content)} min read</span>
                   </div>
                 </div>
-
-                {hero.frontmatter.ogImage && (
-                  // aria-hidden + tabIndex=-1: the title above already links here —
-                  // without this, keyboard/screen-reader users hit the same
-                  // destination twice in a row with this one announcing nothing.
-                  <Link
-                    href={`/${hero.pillar}/${hero.slug}`}
-                    aria-hidden="true"
-                    tabIndex={-1}
-                    className="block group overflow-hidden rounded-lg"
-                  >
-                    <img
-                      src={hero.frontmatter.ogImage}
-                      alt={hero.frontmatter.title}
-                      className="w-full h-[220px] sm:h-[260px] object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                  </Link>
-                )}
               </div>
             </RevealSection>
           )}
@@ -117,31 +126,49 @@ export default function HomePage() {
             <RevealSection className="mb-9" delay={0.05}>
               <SectionLabel>Featured</SectionLabel>
 
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-5">
                 {featured.map((post) => (
-                  <article key={`${post.pillar}-${post.slug}`} className="group flex flex-col gap-2.5">
+                  <article key={`${post.pillar}-${post.slug}`} className="group flex gap-4 sm:gap-5 items-start">
                     {post.frontmatter.ogImage && (
-                      // aria-hidden + tabIndex=-1: heading below links here too.
                       <Link
                         href={`/${post.pillar}/${post.slug}`}
                         aria-hidden="true"
                         tabIndex={-1}
-                        className="block overflow-hidden rounded-lg"
+                        className="block overflow-hidden rounded-lg shrink-0"
                       >
                         <img
                           src={post.frontmatter.ogImage}
                           alt={post.frontmatter.title}
-                          className="w-full h-[160px] object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
+                          className="aspect-square w-24 h-24 sm:w-28 sm:h-28 object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                         />
                       </Link>
                     )}
-                    <PillarTag pillar={post.pillar} />
-                    <Link href={`/${post.pillar}/${post.slug}`}>
-                      <h3 className="font-article font-semibold text-[1rem] leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-3">
-                        {post.frontmatter.title}
-                      </h3>
-                    </Link>
-                    <DateLabel date={post.frontmatter.publishedAt} />
+                    <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                      <div>
+                        <PillarTag pillar={post.pillar} />
+                      </div>
+                      <Link href={`/${post.pillar}/${post.slug}`}>
+                        <h3 className="font-article font-semibold text-[1.05rem] sm:text-[1.2rem] leading-snug tracking-[-0.005em] group-hover:text-[var(--color-fg-muted)] transition-colors line-clamp-2">
+                          {post.frontmatter.title}
+                        </h3>
+                      </Link>
+                      <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-[11px] text-[var(--color-fg-subtle)] mt-1">
+                        {post.frontmatter.author && (
+                          <>
+                            <span className="font-bold uppercase text-[var(--color-accent)] tracking-wider">
+                              {post.frontmatter.author}
+                            </span>
+                            <span className="text-[var(--color-border-strong)]">·</span>
+                          </>
+                        )}
+                        <DateLabel date={post.frontmatter.publishedAt} />
+                        <span className="text-[var(--color-border-strong)]">·</span>
+                        <div className="flex items-center gap-1">
+                          <MessageSquare className="w-3 h-3 text-[var(--color-fg-subtle)]" />
+                          <span className="font-medium tabular-nums">{(post.slug.length % 7) + 2}</span>
+                        </div>
+                      </div>
+                    </div>
                   </article>
                 ))}
               </div>

@@ -22,3 +22,13 @@
 - [x] Revert inline expanding input in `components/Header.tsx` and conditionally render `<SearchBox>`.
 - [x] Verify compiling and code correctness.
 
+## Redesigned Top Story and Featured Sections
+
+- [x] Redesign the **Top Story** component to be a large cinematic full-width card overlaying the image.
+  - [x] Background image occupies the full background (`absolute inset-0 w-full h-full object-cover`).
+  - [x] Overlay text (pillar tag in Mavora red, title in bold white text, description, and publish date) is placed at the bottom over a dark gradient overlay (`bg-gradient-to-t from-black/95 via-black/40 to-transparent`).
+- [x] Redesign the **Featured** section to be a vertical feed of horizontal row cards:
+  - [x] Layout: Stacked vertically using a flex container (`flex flex-col gap-5`).
+  - [x] Card structure: Flex container with a square thumbnail on the left (`aspect-square w-24 h-24 sm:w-28 sm:h-28 rounded-lg object-cover shrink-0`) and text content on the right.
+  - [x] Metadata: Display author name in bold uppercase **Mavora Red** (`text-[var(--color-accent)]`) and a comment icon (`MessageSquare` from `lucide-react`) next to a mock comment count.
+- [x] Verify that the code compiles cleanly and there are no TypeScript errors.
