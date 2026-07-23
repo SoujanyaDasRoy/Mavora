@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils'
 import { estimateReadingTime } from '@/lib/readingTime'
 import { MessageSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { RevealSection } from '@/components/RevealSection'
 import type { Post } from '@/lib/content'
 import { PILLAR_LABELS, type Pillar } from '@/lib/pillars'
@@ -86,7 +85,7 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
             if (featured.length === 0) return null
 
             return (
-              <RevealSection className="mb-9" delay={0.05}>
+              <RevealSection delay={0.05}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {featured.map((post, idx) => (
                     <article
@@ -142,7 +141,7 @@ export default function InteractiveArticleFeed({ posts }: InteractiveArticleFeed
             )
           })()}
 
-          <Separator className="bg-[var(--color-border)] mb-9" />
+          <hr className="h-px border-none bg-[var(--color-border)] my-10" />
 
           {/* Latest Articles Section */}
           {(() => {
