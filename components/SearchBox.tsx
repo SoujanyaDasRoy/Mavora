@@ -471,7 +471,7 @@ export function SearchBox({
   )
 
   return (
-    <div className="w-full flex flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] shadow-lg animate-fade-in">
+    <div className="w-full flex flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] shadow-lg animate-fade-in">
       {/* Search Input block (only for inline/standalone view) */}
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-4 py-4">
         <Search className="text-[var(--color-fg-subtle)] shrink-0 size-5" />

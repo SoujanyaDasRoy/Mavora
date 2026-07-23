@@ -32,3 +32,13 @@
   - [x] Card structure: Flex container with a square thumbnail on the left (`aspect-square w-24 h-24 sm:w-28 sm:h-28 rounded-lg object-cover shrink-0`) and text content on the right.
   - [x] Metadata: Display author name in bold uppercase **Mavora Red** (`text-[var(--color-accent)]`) and a comment icon (`MessageSquare` from `lucide-react`) next to a mock comment count.
 - [x] Verify that the code compiles cleanly and there are no TypeScript errors.
+
+## UI/UX Fixes
+
+- [x] Create `components/ReadingProgressBar.tsx` as a 'use client' component that tracks scroll position and renders a top fixed reading progress bar of h-[3px] in var(--color-accent).
+- [x] Update `components/ArticleCard.tsx` to refactor the unstyled `PillarBadge` component. It should use Tailwind classNames for semantic coloring based on the pillar type (similar to SearchBox.tsx).
+- [x] Update `components/SearchBox.tsx` inline wrapper background to `bg-[var(--color-bg-secondary)]` for better UI contrast.
+- [x] Update `app/[pillar]/[slug]/page.tsx`:
+  - [x] Import and render `<ReadingProgressBar />` inside the article page.
+  - [x] Fetch up to 2 other articles in the same pillar (excluding current) and render them at the bottom under a "Read Next" heading inside a `grid sm:grid-cols-2 gap-6` using `ArticleCard` with variant="grid".
+- [x] Verify that the code compiles cleanly and there are no TypeScript errors.

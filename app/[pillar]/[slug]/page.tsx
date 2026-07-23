@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
-import { PILLARS, type Pillar, getAllPosts, getPostBySlug } from '@/lib/content'
+import { PILLARS, type Pillar, getAllPosts, getPostBySlug, getPostsByPillar } from '@/lib/content'
 import { PILLAR_LABELS } from '@/lib/pillars'
 import { YouTubeEmbed } from '@/components/YouTubeEmbed'
 import { TwitterEmbed } from '@/components/TwitterEmbed'
@@ -10,6 +10,8 @@ import { Container } from '@/components/Container'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { estimateReadingTime } from '@/lib/readingTime'
+import ReadingProgressBar from '@/components/ReadingProgressBar'
+import { ArticleCard } from '@/components/ArticleCard'
 
 // Disable dynamic params so unknown slugs get a 404 (required with output:'export')
 export const dynamicParams = false
@@ -68,8 +70,13 @@ export default async function ArticlePage({
     year: 'numeric',
   })
 
+  const otherPosts = getPostsByPillar(post.pillar)
+    .filter((p) => p.slug !== slug)
+    .slice(0, 2)
+
   return (
     <main>
+      <ReadingProgressBar />
       <Container narrow className="pb-16">
         <article>
           <div className="pt-8 md:pt-10 pb-6">
@@ -114,6 +121,17 @@ export default async function ArticlePage({
             <MDXRemote source={post.content} components={{ YouTubeEmbed, TwitterEmbed }} />
           </div>
         </article>
+
+        {otherPosts.length > 0 && (
+          <div className="mt-12 pt-12 border-t border-[var(--color-border)]">
+            <h2 className="font-article font-semibold text-2xl mb-6">Read Next</h2>
+            <div className="grid sm:grid-cols-2 gap-6">
+              {otherPosts.map((otherPost) => (
+                <ArticleCard key={otherPost.slug} post={otherPost} variant="grid" />
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
     </main>
   )
