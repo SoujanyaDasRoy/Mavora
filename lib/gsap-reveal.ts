@@ -37,7 +37,7 @@ export function revealOnScroll(
       ease: 'power2.out',
       scrollTrigger: {
         trigger: element,
-        start: 'top 85%',
+        start: 'top 95%',
         once: true,
       },
     }
