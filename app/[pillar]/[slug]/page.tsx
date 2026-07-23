@@ -72,7 +72,7 @@ export default async function ArticlePage({
 
   const otherPosts = getPostsByPillar(post.pillar)
     .filter((p) => p.slug !== slug)
-    .slice(0, 2)
+    .slice(0, 3)
 
   return (
     <main>
@@ -125,7 +125,7 @@ export default async function ArticlePage({
         {otherPosts.length > 0 && (
           <div className="mt-12 pt-12 border-t border-[var(--color-border)]">
             <h2 className="font-article font-semibold text-2xl mb-6">Read Next</h2>
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {otherPosts.map((otherPost) => (
                 <ArticleCard key={otherPost.slug} post={otherPost} variant="grid" />
               ))}

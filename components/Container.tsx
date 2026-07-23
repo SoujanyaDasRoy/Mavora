@@ -19,7 +19,7 @@ interface ContainerProps {
 export function Container({ children, className, narrow = false }: ContainerProps) {
   return (
     <div className={cn('mx-auto px-5 md:px-8 max-w-[1440px]', className)}>
-      {narrow ? <div className="max-w-[760px]">{children}</div> : children}
+      {narrow ? <div className="max-w-[760px] mx-auto">{children}</div> : children}
     </div>
   )
 }
