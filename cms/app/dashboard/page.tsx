@@ -297,8 +297,8 @@ export default function DashboardPage() {
 
       {/* Main area takes all remaining space after sidebar */}
       <div className="flex-1 min-w-0 overflow-x-hidden">
-        <main className="w-full max-w-7xl mx-auto p-6 md:p-10">
-          <div className="space-y-8">
+        <main className="w-full p-6 md:p-10 lg:p-12">
+          <div className="space-y-10">
             {/* Header */}
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4 sm:gap-0">
@@ -334,7 +334,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tabs */}
-            <div className="relative border-b border-zinc-800/40">
+            <div className="relative border-b border-zinc-800/40 -mt-2">
               <div className="flex gap-1">
                 {tabs.map((tab) => (
                   <button
@@ -358,7 +358,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Metric Cards */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <MetricCard label="Total Views" value="2.4M" trend="12.3%" trendType="up" />
               <MetricCard label="Active Users" value="48,291" trend="8.1%" trendType="up" />
               <MetricCard label="Bounce Rate" value="42.8%" trend="2.4%" trendType="down" />
@@ -422,17 +422,18 @@ export default function DashboardPage() {
                   <h3 className="mb-1 text-base font-semibold tracking-tight text-zinc-100">
                     Content Distribution
                   </h3>
-                  <p className="mb-6 text-sm text-zinc-500">Breakdown by content type</p>
-                  <div className="flex items-center gap-6">
-                    <div className="h-[200px] w-[200px]">
+                  <p className="mb-5 text-sm text-zinc-500">Breakdown by content type</p>
+                  {/* Stacked layout: donut centered on top, legend full-width below */}
+                  <div className="flex flex-col items-center gap-5">
+                    <div className="h-[160px] w-[160px] shrink-0">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
                             data={donutData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={88}
+                            innerRadius={48}
+                            outerRadius={72}
                             paddingAngle={3}
                             dataKey="value"
                             stroke="none"
@@ -444,12 +445,12 @@ export default function DashboardPage() {
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="flex-1 space-y-3">
+                    <div className="w-full space-y-2.5">
                       {donutData.map((item) => (
                         <div key={item.name} className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">
                             <span
-                              className="h-2.5 w-2.5 rounded-full"
+                              className="h-2.5 w-2.5 shrink-0 rounded-full"
                               style={{ backgroundColor: item.color }}
                             />
                             <span className="text-zinc-400">{item.name}</span>
