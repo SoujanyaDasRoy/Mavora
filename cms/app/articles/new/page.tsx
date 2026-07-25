@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { uploadMediaFile, getPublicMediaUrl } from '@/lib/media-client'
 
+import { AdminHeader } from '@/components/AdminHeader'
+
 // BlockNote touches `window` during editor initialization, so it can't be
 // server-rendered. Load it client-side only to avoid a prerender failure.
 const BlockEditor = dynamic(() => import('@/components/BlockEditor').then((mod) => mod.BlockEditor), {
@@ -92,48 +94,78 @@ export default function NewArticlePage() {
   }
 
   return (
-    <main>
-      <h1>New Article</h1>
-      <input
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={createDraftIfNeeded}
-      />
-      <select value={pillar} onChange={(e) => setPillar(e.target.value as (typeof PILLARS)[number])}>
-        {PILLARS.map((p) => (
-          <option key={p} value={p}>
-            {p}
-          </option>
-        ))}
-      </select>
-      <p>{saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : ''}</p>
+    <div className="admin-layout">
+      <AdminHeader />
+      <main className="admin-content">
+        <h1>New Article</h1>
 
-      <div>
-        <label htmlFor="cover-image">Cover image</label>
-        <input
-          id="cover-image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleCoverImageChange}
-          disabled={coverUploadStatus === 'uploading'}
-        />
-        {coverUploadStatus === 'uploading' && <p>Uploading cover image...</p>}
-        {coverUploadStatus === 'error' && <p role="alert">{coverUploadError}</p>}
-        {coverImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- cover
-          // image lives on the public R2 domain, not a Next-optimizable
-          // local/static asset.
-          <img src={coverImageUrl} alt="Cover preview" style={{ maxWidth: '200px' }} />
+        <div className="form-section">
+          <div className="form-group">
+            <label htmlFor="article-title">Article Title</label>
+            <input
+              id="article-title"
+              className="form-control"
+              placeholder="Enter a title..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={createDraftIfNeeded}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="article-pillar">Pillar</label>
+            <select
+              id="article-pillar"
+              className="form-control"
+              value={pillar}
+              onChange={(e) => setPillar(e.target.value as (typeof PILLARS)[number])}
+            >
+              {PILLARS.map((p) => (
+                <option key={p} value={p}>
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="cover-image">Cover Image</label>
+            <input
+              id="cover-image"
+              type="file"
+              className="form-control"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleCoverImageChange}
+              disabled={coverUploadStatus === 'uploading'}
+            />
+            {coverUploadStatus === 'uploading' && <p style={{ color: 'var(--color-fg-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>Uploading cover image...</p>}
+            {coverUploadStatus === 'error' && <p role="alert" style={{ color: 'var(--color-accent)', fontSize: '0.9rem', marginTop: '0.5rem' }}>{coverUploadError}</p>}
+            {coverImageUrl && (
+              <div style={{ marginTop: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', display: 'inline-block' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={coverImageUrl} alt="Cover preview" style={{ maxWidth: '200px', display: 'block' }} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2>Content Editor</h2>
+          <span style={{ fontSize: '0.85rem', color: 'var(--color-fg-muted)', fontWeight: 600 }}>
+            {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Draft'}
+          </span>
+        </div>
+
+        <div style={{ minHeight: '300px', backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1rem', marginBottom: '2rem' }}>
+          <BlockEditor initialContent="[]" onChange={handleEditorChange} getArticleId={createDraftIfNeeded} />
+        </div>
+
+        {articleId && (
+          <button className="btn btn-primary" onClick={() => router.push(`/articles/${articleId}`)}>
+            Continue Editing (SEO, Publish Settings) &rarr;
+          </button>
         )}
-      </div>
-
-      <BlockEditor initialContent="[]" onChange={handleEditorChange} getArticleId={createDraftIfNeeded} />
-      {articleId && (
-        <button onClick={() => router.push(`/articles/${articleId}`)}>
-          Continue editing (SEO fields, cover image, publish)
-        </button>
-      )}
-    </main>
+      </main>
+    </div>
   )
 }

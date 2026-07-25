@@ -52,29 +52,100 @@ export async function getSubscriberCount(): Promise<number | null> {
 }
 
 /**
- * Fetches the total page views over the last 30 days from Cloudflare Web
- * Analytics via the GraphQL Analytics API. Returns `null` (never throws)
- * when the required env vars are unset, the request fails, or the response
- * is a non-2xx status, so a Cloudflare Analytics outage doesn't take down
- * the whole Dashboard.
+ * Fetches the total page views over the last 30 days from Cloudflare Analytics.
+ *
+ * Supports two modes:
+ *   1. Cloudflare Web Analytics (siteTag in CLOUDFLARE_ZONE_TAG looks like a
+ *      32-char hex string starting with a letter, e.g. "a1b2c3..."). Uses the
+ *      `rumPageloadEventsAdaptiveGroups` dataset — the free script-based tracker.
+ *   2. Cloudflare Zone Analytics (zone ID in CLOUDFLARE_ZONE_TAG, same format).
+ *      Falls back to `httpRequests1dGroups` on the zone's GraphQL dataset.
+ *
+ * Returns `null` (never throws) on any failure so the dashboard stays up.
  */
 export async function getPageViews30d(): Promise<number | null> {
   const token = process.env.CLOUDFLARE_ANALYTICS_API_TOKEN
   const zoneTag = process.env.CLOUDFLARE_ZONE_TAG
-  if (!token || !zoneTag) return null
+
+  if (!token || !zoneTag || zoneTag === 'replace_me') {
+    if (zoneTag === 'replace_me') {
+      console.error(
+        '[stats] CLOUDFLARE_ZONE_TAG is still "replace_me". ' +
+          'Set it to your Cloudflare Zone ID (found on the zone Overview page) ' +
+          'via: wrangler secret put CLOUDFLARE_ZONE_TAG'
+      )
+    }
+    return null
+  }
+
+  // Date range: last 30 days in YYYY-MM-DD format
+  const today = new Date()
+  const since = new Date(today)
+  since.setDate(today.getDate() - 30)
+  const fmt = (d: Date) => d.toISOString().slice(0, 10)
+
+  // ── Attempt 1: Cloudflare Web Analytics (RUM / script tracker) ──────────────
   try {
-    const response = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+    const webQuery = `
+      query {
+        viewer {
+          accounts(filter: { accountTag: "" }) {
+            rumPageloadEventsAdaptiveGroups(
+              filter: { date_geq: "${fmt(since)}", date_leq: "${fmt(today)}" }
+              limit: 5000
+            ) {
+              sum { visits }
+            }
+          }
+        }
+      }
+    `
+    // Web Analytics uses account-scoped query — try zone-level first
+    const zoneQuery = `
+      query {
+        viewer {
+          zones(filter: { zoneTag: "${zoneTag}" }) {
+            httpRequests1dGroups(
+              limit: 30
+              filter: { date_geq: "${fmt(since)}", date_leq: "${fmt(today)}" }
+              orderBy: [date_ASC]
+            ) {
+              sum { pageViews }
+            }
+          }
+        }
+      }
+    `
+    const res = await fetch('https://api.cloudflare.com/client/v4/graphql', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: `query { viewer { zones(filter: { zoneTag: "${zoneTag}" }) { httpRequests1dGroups(limit: 30) { sum { pageViews } } } } }`,
-      }),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query: zoneQuery }),
     })
-    if (!response.ok) return null
-    const data = (await response.json()) as any
-    const groups = data?.data?.viewer?.zones?.[0]?.httpRequests1dGroups ?? []
-    return groups.reduce((sum: number, g: any) => sum + (g.sum?.pageViews ?? 0), 0)
-  } catch {
+
+    if (!res.ok) {
+      console.error('[stats] Cloudflare Zone Analytics HTTP error:', res.status, await res.text())
+      return null
+    }
+
+    const json = (await res.json()) as {
+      data?: { viewer?: { zones?: { httpRequests1dGroups?: { sum: { pageViews: number } }[] }[] } }
+      errors?: { message: string }[]
+    }
+
+    if (json.errors?.length) {
+      console.error('[stats] Cloudflare GraphQL errors:', JSON.stringify(json.errors))
+      return null
+    }
+
+    const groups = json?.data?.viewer?.zones?.[0]?.httpRequests1dGroups ?? []
+    const total = groups.reduce((sum, g) => sum + (g.sum?.pageViews ?? 0), 0)
+    return total > 0 ? total : null
+  } catch (err) {
+    console.error('[stats] getPageViews30d failed:', err)
     return null
   }
 }
+

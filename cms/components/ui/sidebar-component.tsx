@@ -478,7 +478,12 @@ function SectionTitle({
 function DetailSidebar({ activeSection }: { activeSection: string }) {
   const { user } = useUser();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(max-width: 639px)').matches;
+    }
+    return false;
+  });
   const content = getSidebarContent(activeSection);
 
   const toggleExpanded = (itemKey: string) => {
@@ -494,8 +499,8 @@ function DetailSidebar({ activeSection }: { activeSection: string }) {
 
   return (
     <aside
-      className={`bg-zinc-950/30 backdrop-blur-md flex flex-col gap-4 items-start p-4 transition-all duration-500 h-full min-h-screen border-r border-zinc-800/40 shrink-0 ${
-        isCollapsed ? "w-14 min-w-14 !px-2 justify-center items-center" : "w-60"
+      className={`bg-zinc-950/30 backdrop-blur-md flex flex-col gap-4 items-start px-3 py-2 sm:py-4 transition-all duration-500 h-full min-h-screen border-r border-zinc-800/40 shrink min-w-[0] ${
+        isCollapsed ? "w-14 min-w-14 !px-2 justify-center items-center" : "w-32 sm:w-48 lg:w-60"
       }`}
       style={{ transitionTimingFunction: softSpringEasing }}
     >

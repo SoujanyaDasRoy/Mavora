@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { ArticleTable, type ArticleRow } from '@/components/ArticleTable'
+import { AdminHeader } from '@/components/AdminHeader'
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<ArticleRow[]>([])
@@ -44,9 +45,6 @@ export default function ArticlesPage() {
         setDeleteError(true)
         return
       }
-      // Re-fetch from the server rather than removing the row locally, so
-      // the list reflects the actual server state (e.g. if another session
-      // deleted or modified the same article concurrently).
       await loadArticles()
     } catch {
       setDeleteError(true)
@@ -56,15 +54,42 @@ export default function ArticlesPage() {
   }
 
   return (
-    <main>
-      <h1>Manage Articles</h1>
-      <Link href="/articles/new">New Article</Link>
-      {loading && <p>Loading...</p>}
-      {loadError && <p>Failed to load articles.</p>}
-      {deleteError && <p>Failed to delete article.</p>}
-      {!loading && !loadError && (
-        <ArticleTable articles={articles} onDelete={handleDelete} deletingId={deletingId} />
-      )}
-    </main>
+    <div className="admin-layout">
+      <AdminHeader />
+      <main className="admin-content">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h1 style={{ margin: 0 }}>Manage Articles</h1>
+          <Link href="/articles/new" className="btn btn-primary">
+            + New Article
+          </Link>
+        </div>
+
+        {loading && (
+          <div className="state-container">
+            <div className="state-title">Loading articles...</div>
+            <div className="state-desc">Fetching article list from D1 database...</div>
+          </div>
+        )}
+
+        {loadError && (
+          <div className="state-container" style={{ borderColor: 'var(--color-accent)' }}>
+            <div className="state-title" style={{ color: 'var(--color-accent)' }}>Failed to load articles</div>
+            <div className="state-desc">There was an issue connecting to the database.</div>
+          </div>
+        )}
+
+        {deleteError && (
+          <p style={{ color: 'var(--color-accent)', fontWeight: 600, marginBottom: '1.5rem' }}>
+            Failed to delete the article. Only the author or an admin can delete articles.
+          </p>
+        )}
+
+        {!loading && !loadError && (
+          <div className="table-wrapper">
+            <ArticleTable articles={articles} onDelete={handleDelete} deletingId={deletingId} />
+          </div>
+        )}
+      </main>
+    </div>
   )
 }

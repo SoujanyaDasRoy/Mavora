@@ -43,8 +43,8 @@ function AnimatedCircularProgressBar({ value, max, gaugePrimaryColor, gaugeSecon
   const circ = 2 * Math.PI * radius
   const strokeDash = (pct / 100) * circ
   return (
-    <div className="relative flex items-center justify-center">
-      <svg width="120" height="120" viewBox="0 0 120 120">
+    <div className="relative flex items-center justify-center w-[80px] h-[80px] md:w-[100px] md:h-[100px] lg:w-[120px] lg:h-[120px]">
+      <svg width="100%" height="100%" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r={radius} fill="none" stroke={gaugeSecondaryColor} strokeWidth="10" />
         <motion.circle cx="60" cy="60" r={radius} fill="none" stroke={gaugePrimaryColor} strokeWidth="10"
           strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ}
@@ -213,9 +213,9 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-purple-500" /> Volume</div>
                   </div>
                 </div>
-                <div className="h-[300px] w-full">
+                <div className="h-[240px] md:h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                    <BarChart data={chartData} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} />

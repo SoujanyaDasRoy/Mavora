@@ -1,7 +1,6 @@
 import { z } from 'zod'
-import { auth } from '@clerk/nextjs/server'
+import { getOrCreateCurrentWriter } from '@/lib/auth-writer'
 import { getDb } from '@/lib/cloudflare'
-import { getWriter } from '@/lib/writers'
 import { createDraft, listArticles } from '@/lib/articles'
 import { recordAuditEvent } from '@/lib/audit'
 
@@ -11,23 +10,17 @@ const createSchema = z.object({
 })
 
 export async function GET(_request: Request): Promise<Response> {
-  const { userId } = await auth()
-  if (!userId) return new Response('Unauthorized', { status: 401 })
-
   const db = getDb()
-  const writer = await getWriter(db, userId)
+  const writer = await getOrCreateCurrentWriter(db)
   if (!writer) return new Response('Forbidden', { status: 403 })
 
-  const articles = await listArticles(db, writer.role === 'admin' ? {} : { authorId: userId })
+  const articles = await listArticles(db, writer.role === 'admin' ? {} : { authorId: writer.id })
   return new Response(JSON.stringify(articles), { status: 200 })
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const { userId } = await auth()
-  if (!userId) return new Response('Unauthorized', { status: 401 })
-
   const db = getDb()
-  const writer = await getWriter(db, userId)
+  const writer = await getOrCreateCurrentWriter(db)
   if (!writer) return new Response('Forbidden', { status: 403 })
 
   const body = await request.json()
@@ -36,10 +29,10 @@ export async function POST(request: Request): Promise<Response> {
     return new Response(JSON.stringify({ error: parsed.error.flatten() }), { status: 400 })
   }
 
-  const article = await createDraft(db, { ...parsed.data, authorId: userId })
+  const article = await createDraft(db, { ...parsed.data, authorId: writer.id })
 
   try {
-    await recordAuditEvent(db, { actorId: userId, action: 'create', articleId: article.id })
+    await recordAuditEvent(db, { actorId: writer.id, action: 'create', articleId: article.id })
   } catch (error) {
     console.error('Failed to record audit event for article create', error)
   }

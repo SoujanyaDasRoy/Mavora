@@ -37,17 +37,26 @@ export function ArticleTable({ articles, onDelete, deletingId }: ArticleTablePro
           <tr key={article.id}>
             <td>{article.title}</td>
             <td>{article.pillar}</td>
-            <td>{article.status}</td>
+            <td>
+              <span className={`badge badge-${article.status}`}>
+                {article.status}
+              </span>
+            </td>
             <td>{new Date(article.updatedAt).toLocaleDateString()}</td>
             <td>
-              <Link href={`/articles/${article.id}`}>Edit</Link>{' '}
-              <button
-                type="button"
-                onClick={() => onDelete(article.id)}
-                disabled={deletingId === article.id}
-              >
-                {deletingId === article.id ? 'Deleting...' : 'Delete'}
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Link href={`/articles/${article.id}`} className="btn btn-secondary btn-sm">
+                  Edit
+                </Link>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  onClick={() => onDelete(article.id)}
+                  disabled={deletingId === article.id}
+                >
+                  {deletingId === article.id ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
             </td>
           </tr>
         ))}

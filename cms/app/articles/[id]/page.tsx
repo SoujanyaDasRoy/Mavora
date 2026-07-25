@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, type ChangeEvent } from 'react'
 import { useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { uploadMediaFile, getPublicMediaUrl } from '@/lib/media-client'
+import { AdminHeader } from '@/components/AdminHeader'
 
 // BlockNote touches `window` during editor initialization, so it can't be
 // server-rendered. Load it client-side only to avoid a prerender failure.
@@ -95,46 +96,108 @@ export default function EditArticlePage() {
     }
   }
 
-  if (!article) return <main>Loading...</main>
+  if (!article) {
+    return (
+      <div className="admin-layout">
+        <AdminHeader />
+        <main className="admin-content">
+          <div className="state-container">
+            <div className="state-title">Loading Article...</div>
+            <div className="state-desc">Fetching content from D1 database...</div>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
-    <main>
-      <h1>{article.title}</h1>
-      <label htmlFor="seo-title">SEO title</label>
-      <input id="seo-title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} onBlur={saveSeoFields} />
-      <label htmlFor="seo-description">SEO description</label>
-      <textarea
-        id="seo-description"
-        value={seoDescription}
-        onChange={(e) => setSeoDescription(e.target.value)}
-        onBlur={saveSeoFields}
-      />
+    <div className="admin-layout">
+      <AdminHeader />
+      <main className="admin-content">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h1 style={{ margin: 0 }}>{article.title}</h1>
+          <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+            <span className={`badge badge-${article.status}`}>
+              {article.status}
+            </span>
+            <button
+              className="btn btn-primary"
+              onClick={handlePublish}
+              disabled={publishStatus === 'publishing'}
+            >
+              {publishStatus === 'publishing' ? 'Publishing...' : article.status === 'published' ? 'Update Live Article' : 'Publish Article'}
+            </button>
+          </div>
+        </div>
 
-      <div>
-        <label htmlFor="cover-image">Cover image</label>
-        <input
-          id="cover-image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleCoverImageChange}
-          disabled={coverUploadStatus === 'uploading'}
-        />
-        {coverUploadStatus === 'uploading' && <p>Uploading cover image...</p>}
-        {coverUploadStatus === 'error' && <p role="alert">{coverUploadError}</p>}
-        {article.coverImage && (
-          // eslint-disable-next-line @next/next/no-img-element -- cover
-          // image lives on the public R2 domain, not a Next-optimizable
-          // local/static asset.
-          <img src={article.coverImage} alt="Cover preview" style={{ maxWidth: '200px' }} />
+        {publishStatus === 'published' && (
+          <p style={{ color: 'var(--color-success)', fontWeight: 600, marginBottom: '1.5rem' }}>
+            Article published successfully! Git deploy triggered.
+          </p>
         )}
-      </div>
+        {publishStatus === 'error' && (
+          <p style={{ color: 'var(--color-accent)', fontWeight: 600, marginBottom: '1.5rem' }}>
+            Publishing failed. Please check GITHUB_CONTENT_TOKEN permissions.
+          </p>
+        )}
 
-      <BlockEditor initialContent={article.blocknoteContent} onChange={handleEditorChange} getArticleId={getArticleId} />
-      <button onClick={handlePublish} disabled={publishStatus === 'publishing'}>
-        {article.status === 'published' ? 'Update published article' : 'Publish'}
-      </button>
-      {publishStatus === 'published' && <p>Published.</p>}
-      {publishStatus === 'error' && <p>Publish failed.</p>}
-    </main>
+        <div className="form-section">
+          <h2>SEO & Settings</h2>
+
+          <div className="form-group">
+            <label htmlFor="seo-title">SEO Title</label>
+            <input
+              id="seo-title"
+              className="form-control"
+              placeholder="Custom SEO Title"
+              value={seoTitle}
+              onChange={(e) => setSeoTitle(e.target.value)}
+              onBlur={saveSeoFields}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="seo-description">SEO Description</label>
+            <textarea
+              id="seo-description"
+              className="form-control"
+              placeholder="Brief summary for search engines..."
+              rows={3}
+              value={seoDescription}
+              onChange={(e) => setSeoDescription(e.target.value)}
+              onBlur={saveSeoFields}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="cover-image">Cover Image</label>
+            <input
+              id="cover-image"
+              type="file"
+              className="form-control"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleCoverImageChange}
+              disabled={coverUploadStatus === 'uploading'}
+            />
+            {coverUploadStatus === 'uploading' && <p style={{ color: 'var(--color-fg-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>Uploading cover image...</p>}
+            {coverUploadStatus === 'error' && <p role="alert" style={{ color: 'var(--color-accent)', fontSize: '0.9rem', marginTop: '0.5rem' }}>{coverUploadError}</p>}
+            {article.coverImage && (
+              <div style={{ marginTop: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', display: 'inline-block' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={article.coverImage} alt="Cover preview" style={{ maxWidth: '200px', display: 'block' }} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1.2rem' }}>
+          <h2>Content Editor</h2>
+        </div>
+
+        <div style={{ minHeight: '400px', backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1.5rem', marginBottom: '2rem' }}>
+          <BlockEditor initialContent={article.blocknoteContent} onChange={handleEditorChange} getArticleId={getArticleId} />
+        </div>
+      </main>
+    </div>
   )
 }

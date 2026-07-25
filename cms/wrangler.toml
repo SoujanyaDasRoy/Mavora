@@ -36,3 +36,12 @@ bucket_name = "mavora-cms-media"
 # route: Cron Triggers don't produce an HTTP request for Next.js to route.
 [triggers]
 crons = ["0 3 * * 1"]
+
+[vars]
+CMS_ORIGIN = "https://mavora-cms.soujanyadasroy.workers.dev"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_bm90ZWQtbGl6YXJkLTI3LmNsZXJrLmFjY291bnRzLmRldiQ"
+NEXT_PUBLIC_MEDIA_BASE_URL = "https://pub-d8fadfaf94404885a63d3b4655a147da.r2.dev"
+NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/login"
+NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/signup"
+
+
