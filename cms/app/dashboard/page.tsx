@@ -4,13 +4,9 @@ import { motion, useInView, useMotionValue, useSpring } from 'framer-motion';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer 
 } from 'recharts';
-import { 
-  TrendingUp, Users, MousePointerClick, Clock, 
-  Menu, RefreshCcw, Plus, Activity, FileText, Settings, X 
-} from 'lucide-react';
+import { TrendingUp, Users, MousePointerClick, Clock, RefreshCcw, Plus } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { TwoLevelSidebar } from '@/components/ui/sidebar-component';
 
 // --- Magic UI Components ---
 
@@ -120,92 +116,26 @@ const tableData = [
   { id: 4, title: 'Deploying to Vercel', status: 'Archived', date: '2023-10-28', author: 'Bob Brown' },
 ];
 
-const navItems = [
-  { name: 'Overview', href: '/dashboard', icon: Activity },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: TrendingUp },
-  { name: 'Content', href: '/dashboard/content', icon: FileText },
-  { name: 'Audience', href: '/dashboard/audience', icon: Users },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-];
-
 const tabs = ['Overview', 'Analytics', 'Settings'];
-
-// --- Components ---
-
-const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (val: boolean) => void }) => {
-  const { user } = useUser();
-  const pathname = usePathname();
-
-  return (
-    <>
-      <div 
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
-        onClick={() => setIsOpen(false)} 
-      />
-      <div className={`fixed inset-y-0 left-0 z-50 w-60 transform flex-col bg-zinc-950 border-r border-zinc-800/40 transition-transform lg:static lg:flex lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex h-16 shrink-0 items-center px-6 border-b border-zinc-800/40">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-white">
-              <div className="h-2 w-2 rounded-full bg-zinc-950" />
-            </div>
-            <span className="text-lg font-bold text-zinc-100 tracking-tight">Mavora</span>
-          </div>
-          <button className="ml-auto lg:hidden" onClick={() => setIsOpen(false)}>
-            <X className="h-5 w-5 text-zinc-400" />
-          </button>
-        </div>
-        
-        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link key={item.name} href={item.href} className={`group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-zinc-800/50 text-white' : 'text-zinc-400 hover:bg-zinc-800/30 hover:text-zinc-100'}`}>
-                <item.icon className="h-5 w-5 shrink-0" />
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
-        
-        <div className="p-4 border-t border-zinc-800/40">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-sm font-medium text-white">
-              {user?.firstName?.[0] || 'U'}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="truncate text-sm font-medium text-zinc-100">{user?.firstName || 'User'} {user?.lastName || ''}</span>
-              <span className="truncate text-xs text-zinc-500">{user?.primaryEmailAddress?.emailAddress || 'user@example.com'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Overview');
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans">
       <AnimatedGridPattern />
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      {/* Two-level Carbon sidebar: icon rail + collapsible detail panel */}
+      <TwoLevelSidebar activeSection="dashboard" />
       
       <div className="relative flex-1 min-w-0 overflow-x-hidden">
         <main className="w-full p-6 md:p-10 lg:p-12">
           <div className="space-y-10">
             {/* Header */}
             <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div className="flex items-center gap-4">
-                <button className="lg:hidden p-2 -ml-2 text-zinc-400 hover:text-white" onClick={() => setSidebarOpen(true)}>
-                  <Menu className="h-6 w-6" />
-                </button>
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight text-white">Welcome back, {user?.firstName || 'User'}</h1>
-                  <p className="mt-1 text-zinc-400">Here&apos;s what&apos;s happening with your projects today.</p>
-                </div>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-white">Welcome back, {user?.firstName || 'User'}</h1>
+                <p className="mt-1 text-zinc-400">Here&apos;s what&apos;s happening with your projects today.</p>
               </div>
               <div className="flex items-center gap-3">
                 <button className="flex items-center justify-center p-2.5 rounded-lg border border-zinc-800/60 bg-zinc-900/40 text-zinc-400 hover:text-white transition-colors">
