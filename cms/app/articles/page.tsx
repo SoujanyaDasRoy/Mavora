@@ -88,7 +88,7 @@ export default function ArticlesPage() {
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans antialiased">
       <TwoLevelSidebar />
 
-      <main className="flex-1 pl-14 md:pl-20 transition-all duration-300">
+      <main className="flex-1 md:pl-64 transition-all duration-300">
         <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
           
           {/* Top Header */}
