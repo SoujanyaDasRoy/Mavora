@@ -68,6 +68,7 @@ const SECTIONS: { label: string; items: NavItem[] }[] = [
   {
     label: 'Content',
     items: [
+      { label: 'Dashboard',    href: '/dashboard',       icon: Icon.grid,  exact: true },
       { label: 'All Articles', href: '/articles',        icon: Icon.file },
       { label: 'New Article',  href: '/articles/new',    icon: Icon.plus,  exact: true },
     ],
