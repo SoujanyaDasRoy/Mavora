@@ -25,7 +25,7 @@ function NumberTicker({ value, decimalPlaces = 0, prefix = '', suffix = '' }: { 
   return <span ref={ref} />
 }
 
-function BorderBeam({ colorFrom = '#818cf8', colorTo = '#c084fc' }: { colorFrom?: string; colorTo?: string }) {
+function BorderBeam({ colorFrom = '#6366f1', colorTo = '#a855f7' }: { colorFrom?: string; colorTo?: string }) {
   return (
     <div
       className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -46,7 +46,7 @@ function AnimatedCircularProgressBar({ value, max, gaugePrimaryColor, gaugeSecon
   const circ = 2 * Math.PI * radius
   const strokeDash = (pct / 100) * circ
   return (
-    <div className="relative flex items-center justify-center w-[110px] h-[110px]">
+    <div className="relative flex items-center justify-center w-[80px] h-[80px] md:w-[100px] md:h-[100px] lg:w-[120px] lg:h-[120px]">
       <svg width="100%" height="100%" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r={radius} fill="none" stroke={gaugeSecondaryColor} strokeWidth="10" />
         <motion.circle cx="60" cy="60" r={radius} fill="none" stroke={gaugePrimaryColor} strokeWidth="10"
@@ -67,13 +67,13 @@ function AnimatedCircularProgressBar({ value, max, gaugePrimaryColor, gaugeSecon
 function ShimmerButton({ children, onClick, className = '' }: { children: React.ReactNode; onClick?: () => void; className?: string }) {
   return (
     <button onClick={onClick}
-      className={`relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-zinc-100 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-indigo-500/10 ${className}`}
-      style={{ border: '1px solid rgba(255,255,255,0.12)' }}
+      className={`relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-zinc-100 transition-all hover:scale-[1.02] ${className}`}
+      style={{ border: '1px solid rgba(255,255,255,0.1)' }}
     >
       <div className="absolute inset-0 -top-1/2 flex h-[200%] w-full animate-[spin_3s_linear_infinite] items-center justify-center opacity-60">
-        <div className="h-[50%] w-[30%] rounded-full" style={{ background: 'conic-gradient(from 0deg, transparent 0%, transparent 50%, #818cf8 50%, #c084fc 60%, transparent 60%)' }} />
+        <div className="h-[50%] w-[30%] rounded-full" style={{ background: 'conic-gradient(from 0deg, transparent 0%, transparent 50%, #e2e8f0 50%, #e2e8f0 60%, transparent 60%)' }} />
       </div>
-      <div className="absolute inset-[1px] rounded-[calc(0.75rem-1px)] bg-zinc-900" />
+      <div className="absolute inset-[1px] rounded-[calc(0.5rem-1px)] bg-zinc-900" />
       <span className="relative z-10 flex items-center gap-2">{children}</span>
     </button>
   )
@@ -81,7 +81,7 @@ function ShimmerButton({ children, onClick, className = '' }: { children: React.
 
 function AnimatedGridPattern() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.025]">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.03]">
       <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -94,31 +94,6 @@ function AnimatedGridPattern() {
   )
 }
 
-// --- Mock Data ---
-const chartData = [
-  { name: 'Mon', views: 4200, volume: 2400 },
-  { name: 'Tue', views: 5100, volume: 2800 },
-  { name: 'Wed', views: 7800, volume: 4900 },
-  { name: 'Thu', views: 6200, volume: 3908 },
-  { name: 'Fri', views: 8900, volume: 5800 },
-  { name: 'Sat', views: 7390, volume: 4800 },
-  { name: 'Sun', views: 9490, volume: 6300 },
-];
-
-const donutData = [
-  { name: 'Articles', value: 45, color: '#6366f1' },
-  { name: 'Videos', value: 30, color: '#a855f7' },
-  { name: 'Podcasts', value: 15, color: '#ec4899' },
-  { name: 'Other', value: 10, color: '#64748b' },
-];
-
-const tableData = [
-  { id: 1, title: 'Getting Started with Next.js 16 App Router', category: 'Engineering', status: 'Published', views: '14,290', date: 'Oct 25, 2024', author: 'John Doe' },
-  { id: 2, title: 'Understanding React Server Components Deep Dive', category: 'Architecture', status: 'Draft', views: '—', date: 'Oct 26, 2024', author: 'Jane Smith' },
-  { id: 3, title: 'Tailwind CSS v4 Utility First Design Systems', category: 'Design', status: 'Review', views: '3,840', date: 'Oct 27, 2024', author: 'Alice Johnson' },
-  { id: 4, title: 'Deploying High-Scale Workers to Cloudflare Edge', category: 'DevOps', status: 'Published', views: '28,510', date: 'Oct 28, 2024', author: 'Bob Brown' },
-];
-
 const tabs = ['Overview', 'Analytics', 'Settings'];
 
 export default function DashboardPage() {
@@ -126,18 +101,249 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('Overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleRefresh = () => {
+  
+  // Stats state
+  const [stats, setStats] = useState<any>(null);
+  // Articles state
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  
+  // Fetch stats and articles on load and refresh
+  useEffect(() => {
+    let cancelled = false;
+    
+    const fetchData = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const [statsResp, articlesResp] = await Promise.all([
+          fetch('/app/api/stats'),
+          fetch('/app/api/articles')
+        ]);
+        if (!statsResp.ok) throw new Error(`Stats HTTP ${statsResp.status}`);
+        if (!articlesResp.ok) throw new Error(`Articles HTTP ${articlesResp.status}`);
+        const [statsData, articlesData] = await Promise.all([
+          statsResp.json(),
+          articlesResp.json()
+        ]);
+        if (!cancelled) {
+          setStats(statsData as any);
+          setArticles((articlesData as any[]) || []);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(true);
+          setLoading(false);
+        }
+      }
+    };
+    
+    fetchData();
+    
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1000);
+    try {
+      const [statsResp, articlesResp] = await Promise.all([
+        fetch('/app/api/stats'),
+        fetch('/app/api/articles')
+      ]);
+      if (!statsResp.ok) throw new Error(`Stats HTTP ${statsResp.status}`);
+      if (!articlesResp.ok) throw new Error(`Articles HTTP ${articlesResp.status}`);
+      const [statsData, articlesData] = await Promise.all([
+        statsResp.json(),
+        articlesResp.json()
+      ]);
+      setStats(statsData as any);
+      setArticles((articlesData as any[]) || []);
+    } catch (err) {
+      setError(true);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
-
-  const filteredArticles = tableData.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  
+  // Prepare metric cards from stats
+  const metricCards = React.useMemo(() => {
+    if (!stats) return [];
+    return [
+      {
+        label: 'Total Views',
+        icon: TrendingUp,
+        val: stats.pageViews30d ?? 0,
+        suffix: '',
+        decimalPlaces: 0,
+        trend: '+0.0%', // Placeholder
+        trendType: 'neutral',
+        sub: 'last 30 days'
+      },
+      {
+        label: 'Published Articles',
+        icon: FileText,
+        val: stats.publishedCount ?? 0,
+        suffix: '',
+        decimalPlaces: 0,
+        trend: '+0.0%',
+        trendType: 'neutral',
+        sub: 'total published'
+      },
+      {
+        label: 'Draft Articles',
+        icon: Search,
+        val: stats.draftCount ?? 0,
+        suffix: '',
+        decimalPlaces: 0,
+        trend: '+0.0%',
+        trendType: 'neutral',
+        sub: 'total drafts'
+      },
+      {
+        label: 'Subscribers',
+        icon: Users,
+        val: stats.subscriberCount ?? 0,
+        suffix: '',
+        decimalPlaces: 0,
+        trend: '+0.0%',
+        trendType: 'neutral',
+        sub: 'newsletter subscribers'
+      },
+      {
+        label: 'Storage Used',
+        icon: Clock,
+        val: stats.r2UsedBytes ?? 0,
+        max: stats.r2FreeTierBytes ?? (10 * 1024 * 1024 * 1024),
+        suffix: '',
+        decimalPlaces: 2,
+        trend: '+0.0%',
+        trendType: 'neutral',
+        sub: `of ${((stats?.r2FreeTierBytes ?? (10 * 1024 * 1024 * 1024)) / (1024 ** 3)).toFixed(1)} GB`
+      },
+    ];
+  }, [stats]);
+  
+  // Prepare chart and table data from articles
+  const pillarDistribution = React.useMemo(() => {
+    if (!articles.length) return [];
+    const counts: Record<string, number> = { ai: 0, technology: 0, productivity: 0, business: 0 };
+    articles.forEach(a => {
+      if (a.pillar in counts) {
+        counts[a.pillar] = (counts[a.pillar] || 0) + 1;
+      }
+    });
+    return Object.entries(counts).map(([name, value]) => ({
+      name,
+      value,
+      color: name === 'ai' ? '#6366f1' : name === 'technology' ? '#a855f7' : name === 'productivity' ? '#ec4899' : '#64748b',
+    }));
+  }, [articles]);
+  
+  const dailyArticleCounts = React.useMemo(() => {
+    if (!articles.length) return Array.from({ length: 30 }, (_, i) => ({
+      name: '',
+      views: 0,
+      volume: 0,
+    }));
+    
+    // Group articles by createdAt date (last 30 days)
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    const counts: Record<string, number> = {};
+    articles.forEach(a => {
+      const created = new Date(a.createdAt);
+      if (created >= thirtyDaysAgo && created <= today) {
+        const dateStr = created.toISOString().slice(0, 10); // YYYY-MM-DD
+        counts[dateStr] = (counts[dateStr] || 0) + 1;
+      }
+    });
+    
+    // Create array for last 30 days (descending order: most recent first)
+    const result = [];
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dateStr = date.toISOString().slice(0, 10);
+      const count = counts[dateStr] || 0;
+      // Format date as day name (Mon, Tue, etc.)
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+      result.push({
+        name: dayName,
+        views: count, // Using views for article count
+        volume: 0, // volume unused
+      });
+    }
+    // Reverse to get chronological order (oldest first) for chart
+    return result.reverse();
+  }, [articles]);
+  
+  const recentArticles = React.useMemo(() => {
+    if (!articles.length) return [];
+    // Sort by updatedAt descending
+    const sorted = [...articles].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    // Take top 4
+    const top4 = sorted.slice(0, 4);
+    // Map to table format
+    return top4.map(article => ({
+      id: article.id,
+      title: article.title,
+      // We don't have category in article; we can use pillar as category
+      category: article.pillar.charAt(0).toUpperCase() + article.pillar.slice(1),
+      views: '—', // We don't have view count per article; could fetch from analytics but not available
+      status: article.status,
+      date: new Date(article.updatedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }),
+      author: article.authorName || (user?.firstName || 'User'), // Use authorName from article, fallback to current user
+    }));
+  }, [articles, user]);
+  
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans antialiased">
+        <AnimatedGridPattern />
+        <TwoLevelSidebar activeSection="dashboard" />
+        <div className="relative flex-1 min-w-0 overflow-x-hidden">
+          <main className="w-full p-6 md:p-10 lg:p-12">
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+                <p className="mt-4 text-zinc-400">Loading dashboard...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans antialiased">
+        <AnimatedGridPattern />
+        <TwoLevelSidebar activeSection="dashboard" />
+        <div className="relative flex-1 min-w-0 overflow-x-hidden">
+          <main className="w-full p-6 md:p-10 lp-12">
+            <div className="text-center">
+              <p className="text-zinc-400">Error loading dashboard data. Please try again.</p>
+              <button onClick={handleRefresh} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                Retry
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
       <AnimatedGridPattern />
@@ -202,53 +408,13 @@ export default function DashboardPage() {
 
             {/* 3. Metric Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { 
-                  label: 'Total Views', 
-                  icon: TrendingUp, 
-                  val: 2400000, 
-                  suffix: 'M', 
-                  decimalPlaces: 1, 
-                  divisor: 1000000, 
-                  trend: '+12.3%', 
-                  trendType: 'up',
-                  sub: 'vs last month' 
-                },
-                { 
-                  label: 'Active Users', 
-                  icon: Users, 
-                  val: 48291, 
-                  suffix: '', 
-                  decimalPlaces: 0, 
-                  trend: '+8.1%', 
-                  trendType: 'up',
-                  sub: 'vs last month' 
-                },
-                { 
-                  label: 'Bounce Rate', 
-                  icon: MousePointerClick, 
-                  val: 42.8, 
-                  suffix: '%', 
-                  decimalPlaces: 1, 
-                  trend: '-2.4%', 
-                  trendType: 'down',
-                  sub: 'improved 2.4%' 
-                },
-                { 
-                  label: 'Avg. Session', 
-                  icon: Clock, 
-                  valStr: '4m 12s', 
-                  trend: '0.0%', 
-                  trendType: 'neutral',
-                  sub: 'steady retention' 
-                }
-              ].map((metric, i) => (
+              {metricCards.map((metric, i) => (
                 <motion.div
                   key={metric.label}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08, duration: 0.4 }}
-                  className="group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 lg:p-7 backdrop-blur-md shadow-lg shadow-black/20 transition-all duration-300 hover:border-zinc-700/60 hover:-translate-y-0.5"
+                  className="group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 lg:p-7 backdrop-blur-sm"
                 >
                   <BorderBeam colorFrom="#818cf8" colorTo="#c084fc" />
                   
@@ -262,10 +428,10 @@ export default function DashboardPage() {
                   <div className="flex flex-col gap-2">
                     <div className="text-3xl lg:text-4xl font-extrabold text-zinc-50 tracking-tight">
                       {metric.val !== undefined ? (
-                        <NumberTicker value={metric.divisor ? metric.val / metric.divisor : metric.val} decimalPlaces={metric.decimalPlaces} suffix={metric.suffix} />
+                        <NumberTicker value={metric.val} decimalPlaces={metric.decimalPlaces} suffix={metric.suffix} />
                       ) : (
-                        metric.valStr
-                      )}
+                        <span className="text-3xl lg:text-4xl font-extrabold text-zinc-50 tracking-tight">{(metric as any).valStr}</span>
+                      )} 
                     </div>
 
                     <div className="flex items-center gap-2 mt-1">
@@ -279,7 +445,6 @@ export default function DashboardPage() {
                         {metric.trendType === 'up' && <ArrowUpRight className="h-3 w-3" />}
                         {metric.trendType === 'down' && <ArrowDownRight className="h-3 w-3" />}
                         {metric.trendType === 'neutral' && <ArrowRight className="h-3 w-3" />}
-                        {metric.trend}
                       </span>
                       <span className="text-xs text-zinc-500">{metric.sub}</span>
                     </div>
@@ -287,35 +452,20 @@ export default function DashboardPage() {
                 </motion.div>
               ))}
             </div>
-
-            {/* 4. Analytics Section (Balanced 70 / 30 Layout) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              
-              {/* Main Analytics Chart (70% width ~ lg:col-span-8) */}
-              <div className="lg:col-span-8 rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 lg:p-8 backdrop-blur-md shadow-xl shadow-black/20 flex flex-col justify-between">
-                <div>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <div>
-                      <h3 className="text-lg font-bold text-white tracking-tight">Analytics Overview</h3>
-                      <p className="text-xs text-zinc-400 mt-0.5">Content views and interaction volume over the past 7 days</p>
-                    </div>
-                    
-                    <div className="flex items-center gap-5 text-xs font-medium">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                        <span className="text-zinc-300">Views</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-                        <span className="text-zinc-300">Volume</span>
-                      </div>
-                    </div>
+            
+            {/* 4. Charts (using real data from articles) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 backdrop-blur-sm">
+                <div className="mb-6 flex items-center justify-between">
+                  <h3 className="font-semibold text-white">Analytics Overview</h3>
+                  <div className="flex items-center gap-4 text-sm text-zinc-400">
+                    <div className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-indigo-500" /> Views</div>
+                    <div className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-purple-500" /> Volume</div>
                   </div>
                 </div>
-
-                <div className="h-[300px] lg:h-[340px] w-full">
+                <div className="h-[240px] md:h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }} barGap={6}>
+                    <BarChart data={dailyArticleCounts} margin={{ top: 10, right: 10, left: -15, bottom: 0 }} barGap={6}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} />
@@ -330,33 +480,22 @@ export default function DashboardPage() {
                         }} 
                       />
                       <Bar dataKey="views" fill="#6366f1" radius={[6, 6, 0, 0]} maxBarSize={32} />
-                      <Bar dataKey="volume" fill="#a855f7" radius={[6, 6, 0, 0]} maxBarSize={32} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Right Sidebar Widgets (30% width ~ lg:col-span-4) */}
-              <div className="lg:col-span-4 flex flex-col gap-6">
-                
-                {/* Content Distribution */}
-                <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 backdrop-blur-md shadow-xl shadow-black/20 flex-1">
-                  <div className="mb-5">
-                    <h3 className="text-base font-bold text-white tracking-tight">Content Distribution</h3>
-                    <p className="text-xs text-zinc-400 mt-0.5">Share by published content category</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    {donutData.map((item, index) => (
-                      <div key={item.name} className="group">
-                        <div className="flex items-center justify-between mb-1.5 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-                            <span className="text-zinc-300 font-medium group-hover:text-white transition-colors">{item.name}</span>
-                          </div>
-                          <span className="font-mono text-zinc-400 font-semibold">{item.value}%</span>
+              <div className="flex flex-col gap-6">
+                <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 backdrop-blur-sm flex-1">
+                  <h3 className="font-semibold text-white mb-6">Content Distribution</h3>
+                  <div className="space-y-5">
+                    {pillarDistribution.map((item, index) => (
+                      <div key={item.name}>
+                        <div className="flex justify-between mb-1.5 text-xs text-zinc-400">
+                          <span className="capitalize">{item.name}</span>
+                          <span className="font-mono font-medium text-zinc-200">{item.value}%</span>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-zinc-800/80 overflow-hidden p-0.5 border border-zinc-800">
+                        <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
                           <motion.div
                             className="h-full rounded-full"
                             style={{ backgroundColor: item.color }}
@@ -369,61 +508,44 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </div>
-
-                {/* Storage Capacity */}
-                <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 backdrop-blur-md shadow-xl shadow-black/20 flex flex-col items-center justify-center relative min-h-[220px]">
-                  <div className="w-full flex items-center justify-between mb-2">
-                    <h3 className="text-base font-bold text-white tracking-tight">Storage Capacity</h3>
-                    <span className="text-[10px] uppercase font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">68% Used</span>
+                
+                <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 backdrop-blur-sm flex flex-col items-center justify-center relative">
+                  <h3 className="font-semibold text-white absolute top-6 left-6">Storage</h3>
+                  <div className="mt-8">
+                    <AnimatedCircularProgressBar 
+                      value={stats ? (stats.r2UsedBytes / stats.r2FreeTierBytes) * 100 : 0} 
+                      max={100} 
+                      gaugePrimaryColor="#f59e0b" 
+                      gaugeSecondaryColor="#27272a" 
+                      label="Used" 
+                    />
                   </div>
-
-                  <div className="my-3">
-                    <AnimatedCircularProgressBar value={68.4} max={100} gaugePrimaryColor="#f59e0b" gaugeSecondaryColor="#27272a" label="Used" />
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-xs font-semibold text-zinc-300">68.4 GB of 100 GB used</p>
-                    <p className="text-[11px] text-zinc-500 mt-0.5">31.6 GB storage remaining</p>
-                  </div>
+                  <p className="mt-4 text-sm font-medium text-amber-500">
+                    {stats ? ((stats.r2UsedBytes / (1024 ** 3)).toFixed(1)) : 0} GB of 
+                    {stats ? ((stats.r2FreeTierBytes ?? (10 * 1024 * 1024 * 1024)) / (1024 ** 3)).toFixed(1) : 0} GB
+                  </p>
                 </div>
-
               </div>
             </div>
 
-            {/* 5. Recent Articles Table */}
-            <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 backdrop-blur-md overflow-hidden shadow-xl shadow-black/20">
-              <div className="p-6 border-b border-zinc-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-bold text-white tracking-tight">Recent Articles</h3>
-                  <p className="text-xs text-zinc-400 mt-0.5">Latest performance metrics and publishing status across content</p>
-                </div>
-
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-                  <input 
-                    type="text" 
-                    placeholder="Search articles..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder:text-zinc-500 outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/60 transition-all"
-                  />
-                </div>
+            {/* 5. Recent Articles Table (using real data from articles) */}
+            <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 backdrop-blur-sm overflow-hidden">
+              <div className="p-6 border-b border-zinc-800/60">
+                <h3 className="font-semibold text-white">Recent Articles</h3>
               </div>
-
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-zinc-400">
                   <thead className="bg-zinc-900/80 border-b border-zinc-800/60 text-[11px] uppercase font-semibold text-zinc-400 tracking-wider sticky top-0 backdrop-blur-md">
                     <tr>
                       <th className="px-6 py-4 font-semibold">Article Title</th>
                       <th className="px-6 py-4 font-semibold">Category</th>
-                      <th className="px-6 py-4 font-semibold">Views</th>
                       <th className="px-6 py-4 font-semibold">Status</th>
                       <th className="px-6 py-4 font-semibold">Published Date</th>
                       <th className="px-6 py-4 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800/40">
-                    {filteredArticles.map((row, i) => (
+                    {recentArticles.map((row, i) => (
                       <motion.tr 
                         key={row.id}
                         initial={{ opacity: 0, y: 10 }}
@@ -442,13 +564,12 @@ export default function DashboardPage() {
                             {row.category}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-xs font-mono font-medium text-zinc-300">{row.views}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                             row.status === 'Published' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                             row.status === 'Draft' ? 'bg-zinc-800/60 text-zinc-400 border-zinc-700/40' :
                             row.status === 'Review' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                            'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                            'bg-rose-500/10 text-rose-400/20'
                           }`}>
                             <span className={`h-1.5 w-1.5 rounded-full ${
                               row.status === 'Published' ? 'bg-emerald-400 animate-pulse' :
@@ -472,7 +593,6 @@ export default function DashboardPage() {
                 </table>
               </div>
             </div>
-
           </div>
         </main>
       </div>
