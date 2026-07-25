@@ -6,21 +6,21 @@ import { UserButton } from '@clerk/nextjs'
 
 export function AdminHeader() {
   const pathname = usePathname()
-  const isActive = (path: string) => pathname === path || (path !== '/dashboard' && pathname.startsWith(path))
+  const isActive = (path: string) => pathname === path || pathname.startsWith(path)
 
   return (
     <header className="admin-header">
       <div className="header-container">
         <div className="header-left">
-          <Link href="/dashboard" className="brand-logo">
+          <Link href="/articles" className="brand-logo">
             Mavora <span className="cms-badge">CMS</span>
           </Link>
           <nav className="nav-links">
             <Link
-              href="/dashboard"
-              className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
+              href="/articles"
+              className={`nav-link ${isActive('/articles') ? 'active' : ''}`}
             >
-              Dashboard
+              Articles
             </Link>
             <Link
               href="/articles"

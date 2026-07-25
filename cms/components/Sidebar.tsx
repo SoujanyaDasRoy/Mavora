@@ -68,22 +68,8 @@ const SECTIONS: { label: string; items: NavItem[] }[] = [
   {
     label: 'Content',
     items: [
-      { label: 'Dashboard',    href: '/dashboard',       icon: Icon.grid,  exact: true },
       { label: 'All Articles', href: '/articles',        icon: Icon.file },
       { label: 'New Article',  href: '/articles/new',    icon: Icon.plus,  exact: true },
-    ],
-  },
-  {
-    label: 'Analytics',
-    items: [
-      { label: 'Page Views',     href: '/dashboard',     icon: Icon.eye,  exact: true },
-      { label: 'Subscribers',    href: '/dashboard',     icon: Icon.mail, exact: true },
-    ],
-  },
-  {
-    label: 'Team',
-    items: [
-      { label: 'Writers',        href: '/dashboard#team', icon: Icon.users },
     ],
   },
   {
@@ -107,7 +93,7 @@ export function SidebarComponent() {
     <Sidebar className="border-r border-border/80 bg-sidebar text-sidebar-foreground w-60">
       {/* Sidebar Header with official Mavora logo */}
       <SidebarHeader className="border-b border-border/60 py-5 px-6 flex items-center justify-start">
-        <Link href="/dashboard" className="flex items-center">
+        <Link href="/articles" className="flex items-center">
           <img
             src="/logo.png"
             alt="Mavora Logo"
