@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useUser } from "@clerk/nextjs"
 import {
   BarChart,
   Bar,
@@ -65,20 +66,20 @@ const SearchIcon = ({ className }: { className?: string }) => (
 
 // ─── Mock Data ───
 const chartData = [
-  { day: "Mon", views: 4200, volume: 2400 },
-  { day: "Tue", views: 5100, volume: 2800 },
-  { day: "Wed", views: 4800, volume: 3100 },
-  { day: "Thu", views: 6200, volume: 3500 },
-  { day: "Fri", views: 5900, volume: 3300 },
-  { day: "Sat", views: 7100, volume: 4100 },
-  { day: "Sun", views: 6800, volume: 3900 },
-  { day: "Mon", views: 7400, volume: 4200 },
-  { day: "Tue", views: 6900, volume: 3800 },
-  { day: "Wed", views: 8200, volume: 4600 },
-  { day: "Thu", views: 7800, volume: 4400 },
-  { day: "Fri", views: 8500, volume: 4900 },
-  { day: "Sat", views: 9100, volume: 5200 },
-  { day: "Sun", views: 8800, volume: 5000 },
+  { day: "Jul 12", views: 4200, volume: 2400 },
+  { day: "Jul 13", views: 5100, volume: 2800 },
+  { day: "Jul 14", views: 4800, volume: 3100 },
+  { day: "Jul 15", views: 6200, volume: 3500 },
+  { day: "Jul 16", views: 5900, volume: 3300 },
+  { day: "Jul 17", views: 7100, volume: 4100 },
+  { day: "Jul 18", views: 6800, volume: 3900 },
+  { day: "Jul 19", views: 7400, volume: 4200 },
+  { day: "Jul 20", views: 6900, volume: 3800 },
+  { day: "Jul 21", views: 8200, volume: 4600 },
+  { day: "Jul 22", views: 7800, volume: 4400 },
+  { day: "Jul 23", views: 8500, volume: 4900 },
+  { day: "Jul 24", views: 9100, volume: 5200 },
+  { day: "Jul 25", views: 8800, volume: 5000 },
 ]
 
 const donutData = [
@@ -109,61 +110,77 @@ const tabs = ["Overview", "Analytics", "Settings"]
 
 // ─── Components ───
 
-function Sidebar() {
+function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolean) => void }) {
+  const { user, isLoaded } = useUser()
+  const initials = isLoaded && user?.fullName
+    ? user.fullName.split(" ").map((n: string) => n[0]).join("")
+    : "U"
+  const name = isLoaded && user?.fullName ? user.fullName : "User"
+
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-[260px] flex-col border-r border-zinc-800/40 bg-zinc-950">
-      {/* Logo */}
-      <div className="flex h-16 items-center border-b border-zinc-800/40 px-6">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
-            <div className="h-3 w-3 rounded-sm bg-zinc-950" />
+    <>
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-zinc-950/80 backdrop-blur-sm md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      <aside className={`fixed left-0 top-0 z-40 h-screen w-[260px] flex-col overflow-hidden border-r border-zinc-800/40 bg-zinc-950 ${isOpen ? "flex" : "hidden"} md:flex`}>
+        {/* Logo */}
+        <div className="flex h-16 items-center justify-between border-b border-zinc-800/40 px-6">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
+              <div className="h-3 w-3 rounded-sm bg-zinc-950" />
+            </div>
+            <span className="text-sm font-semibold tracking-tight text-zinc-100">Telemetry</span>
           </div>
-          <span className="text-sm font-semibold tracking-tight text-zinc-100">Telemetry</span>
+          <button onClick={() => setIsOpen(false)} className="md:hidden text-zinc-400 hover:text-zinc-100">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      </div>
 
-      {/* Nav */}
-      <nav className="flex-1 space-y-1 px-4 py-6">
-        <div className="mb-3 px-2 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-          Platform
-        </div>
-        {navItems.map((item) => (
-          <a
-            key={item.label}
-            href="#"
-            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-              item.active
-                ? "text-zinc-100"
-                : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
-            }`}
-          >
-            {item.active && (
-              <motion.div
-                layoutId="activeNav"
-                className="absolute -left-4 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-zinc-100"
-                transition={{ type: "spring", stiffness: 380, damping: 30 }}
-              />
-            )}
-            <item.icon className="h-[18px] w-[18px] shrink-0" />
-            {item.label}
-          </a>
-        ))}
-      </nav>
+        {/* Nav */}
+        <nav className="flex-1 space-y-1 px-4 py-6">
+          {navItems.map((item) => (
+            <a
+              key={item.label}
+              href="#"
+              className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                item.active
+                  ? "text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+              }`}
+            >
+              {item.active && (
+                <motion.div
+                  layoutId="activeNav"
+                  className="absolute -left-4 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-zinc-100"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+              <item.icon className="h-[18px] w-[18px] shrink-0" />
+              {item.label}
+            </a>
+          ))}
+        </nav>
 
-      {/* User Profile */}
-      <div className="border-t border-zinc-800/40 p-4">
-        <div className="flex items-center gap-3 rounded-lg border border-zinc-800/40 bg-zinc-900/40 p-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-xs font-semibold text-zinc-300">
-            JD
+        {/* User Profile */}
+        <div className="border-t border-zinc-800/40 p-4">
+          <div className="flex items-center gap-3 rounded-lg border border-zinc-800/40 bg-zinc-900/40 p-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-xs font-semibold text-zinc-300">
+              {initials}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-zinc-200">{name}</p>
+              <p className="truncate text-xs text-zinc-500">Pro Plan</p>
+            </div>
+            <SettingsIcon className="h-4 w-4 shrink-0 text-zinc-500" />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-zinc-200">Jordan Doe</p>
-            <p className="truncate text-xs text-zinc-500">Pro Plan</p>
-          </div>
-          <SettingsIcon className="h-4 w-4 shrink-0 text-zinc-500" />
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   )
 }
 
@@ -232,7 +249,7 @@ function CustomTooltip({ active, payload, label }: any) {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     Published: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    Draft: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+    Draft: "bg-zinc-700/40 text-zinc-300 border-zinc-600/40",
     Review: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     Archived: "bg-red-500/10 text-red-400 border-red-500/20",
   }
@@ -249,6 +266,8 @@ function StatusBadge({ status }: { status: string }) {
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("Overview")
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { user, isLoaded } = useUser()
 
   const handleRefresh = () => {
     setIsRefreshing(true)
@@ -258,22 +277,31 @@ export default function DashboardPage() {
   const storageUsed = 68.4
   const storageTotal = 100
 
+  const firstName = isLoaded && user?.firstName ? user.firstName : "User"
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100" style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-      <div className="pl-[260px]">
+      <div className="md:pl-[260px]">
         <main className="mx-auto max-w-7xl p-6 md:p-10">
           <div className="space-y-8">
             {/* Header */}
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
-                  Welcome back, Jordan
-                </h1>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Here&apos;s what&apos;s happening with your projects today.
-                </p>
+              <div className="flex items-center gap-4 sm:gap-0">
+                <button className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-zinc-100" onClick={() => setSidebarOpen(true)}>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
+                    Welcome back, {firstName}
+                  </h1>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    Here&apos;s what&apos;s happening with your projects today.
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -321,7 +349,7 @@ export default function DashboardPage() {
               <MetricCard label="Total Views" value="2.4M" trend="12.3%" trendType="up" />
               <MetricCard label="Active Users" value="48,291" trend="8.1%" trendType="up" />
               <MetricCard label="Bounce Rate" value="42.8%" trend="2.4%" trendType="down" />
-              <MetricCard label="Avg. Session" value="4m 12s" trend="Static" trendType="neutral" />
+              <MetricCard label="Avg. Session" value="4m 12s" trend="0.0%" trendType="neutral" />
             </div>
 
             {/* Charts Section */}
@@ -346,7 +374,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <div className="h-[320px] w-full">
+                <div className="h-[360px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} barGap={4}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
@@ -356,6 +384,9 @@ export default function DashboardPage() {
                         tickLine={false}
                         tick={{ fill: "#71717a", fontSize: 12 }}
                         dy={8}
+                        interval={1}
+                        angle={-30}
+                        textAnchor="end"
                       />
                       <YAxis
                         axisLine={false}
@@ -380,15 +411,15 @@ export default function DashboardPage() {
                   </h3>
                   <p className="mb-6 text-sm text-zinc-500">Breakdown by content type</p>
                   <div className="flex items-center gap-6">
-                    <div className="h-[180px] w-[180px]">
+                    <div className="h-[200px] w-[200px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
                             data={donutData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={56}
-                            outerRadius={80}
+                            innerRadius={60}
+                            outerRadius={88}
                             paddingAngle={3}
                             dataKey="value"
                             stroke="none"
@@ -429,16 +460,23 @@ export default function DashboardPage() {
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-900">
                     <motion.div
-                      className="h-full rounded-full bg-zinc-300"
+                      className={`h-full rounded-full ${
+                        (storageUsed / storageTotal) < 0.5 ? "bg-zinc-300" : (storageUsed / storageTotal) <= 0.8 ? "bg-amber-400" : "bg-red-500"
+                      }`}
                       initial={{ width: 0 }}
                       animate={{ width: `${(storageUsed / storageTotal) * 100}%` }}
                       transition={{ duration: 1, ease: "easeOut" }}
                     />
                   </div>
                   <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
-                    <span>68.4 GB used</span>
-                    <span>31.6 GB free</span>
+                    <span>{storageUsed} GB used</span>
+                    <span>{(storageTotal - storageUsed).toFixed(1)} GB free</span>
                   </div>
+                  {(storageUsed / storageTotal) > 0.5 && (
+                    <p className="mt-3 text-xs font-medium text-amber-500">
+                      ⚠ Consider upgrading your storage plan
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -457,7 +495,7 @@ export default function DashboardPage() {
                   <input
                     type="text"
                     placeholder="Search items..."
-                    className="h-9 w-64 rounded-lg border border-zinc-800/40 bg-zinc-900/40 pl-9 pr-4 text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-colors focus:border-zinc-700 focus:bg-zinc-900"
+                    className="h-9 w-64 rounded-lg border border-zinc-700/50 bg-zinc-900/40 pl-9 pr-4 text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-colors focus:border-zinc-700 focus:bg-zinc-900"
                   />
                 </div>
               </div>
@@ -476,7 +514,7 @@ export default function DashboardPage() {
                     {tableData.map((row, idx) => (
                       <tr
                         key={idx}
-                        className="border-b border-zinc-800/30 transition-colors last:border-0 hover:bg-zinc-900/40"
+                        className="group cursor-pointer border-b border-zinc-800/30 transition-colors last:border-0 hover:bg-zinc-900/70"
                       >
                         <td className="px-6 py-4">
                           <div>
@@ -490,7 +528,7 @@ export default function DashboardPage() {
                           <StatusBadge status={row.status} />
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button className="inline-flex items-center gap-1 text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-200">
+                          <button className="inline-flex items-center gap-1 rounded-md border border-transparent px-2 py-1 text-xs font-medium text-zinc-400 transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100 group-hover:text-zinc-100">
                             View
                             <ChevronRightIcon className="h-3.5 w-3.5" />
                           </button>
