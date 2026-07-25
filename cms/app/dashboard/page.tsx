@@ -119,13 +119,22 @@ function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolea
 
   return (
     <>
+      {/* Mobile overlay backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-30 bg-zinc-950/80 backdrop-blur-sm md:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
-      <aside className={`fixed left-0 top-0 z-40 h-screen w-[260px] flex-col overflow-hidden border-r border-zinc-800/40 bg-zinc-950 ${isOpen ? "flex" : "hidden"} md:flex`}>
+      {/* On mobile: fixed overlay. On desktop: sticky inline sidebar in flex row */}
+      <aside
+        style={{ width: 260 }}
+        className={`
+          flex-col shrink-0 border-r border-zinc-800/40 bg-zinc-950 overflow-hidden
+          fixed left-0 top-0 z-40 h-screen md:sticky md:top-0 md:h-screen md:z-auto
+          ${isOpen ? "flex" : "hidden"} md:flex
+        `}
+      >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-zinc-800/40 px-6">
           <div className="flex items-center gap-2.5">
@@ -280,11 +289,15 @@ export default function DashboardPage() {
   const firstName = isLoaded && user?.firstName ? user.firstName : "User"
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100" style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
+    <div
+      className="flex min-h-screen bg-zinc-950 text-zinc-100"
+      style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
+    >
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-      <div className="md:pl-[260px]">
-        <main className="mx-auto max-w-7xl p-6 md:p-10">
+      {/* Main area takes all remaining space after sidebar */}
+      <div className="flex-1 min-w-0 overflow-x-hidden">
+        <main className="w-full max-w-7xl mx-auto p-6 md:p-10">
           <div className="space-y-8">
             {/* Header */}
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
