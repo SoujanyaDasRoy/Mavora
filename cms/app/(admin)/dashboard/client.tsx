@@ -2,10 +2,8 @@
 
 import { Activity, Calendar, Doc, Folder } from '@carbon/icons-react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { MagicCard } from '@/components/ui/magic-card'
 import { NumberTicker } from '@/components/ui/number-ticker'
 import { AnimatedList } from '@/components/ui/animated-list'
-import { Marquee } from '@/components/ui/marquee'
 import { GridPattern } from '@/components/ui/grid-pattern'
 import { Progress } from '@/components/ui/progress'
 import { BorderBeam } from '@/components/ui/border-beam'
@@ -16,6 +14,8 @@ import { cn } from '@/lib/utils'
 interface KpiTile {
   title: string
   value: number
+  /** 0–1 normalized "VU level". Drives the bottom bar's fill width. */
+  level: number
   delta?: { sign: 'up' | 'down' | 'flat'; label: string }
   icon: React.ReactNode
 }
@@ -51,6 +51,10 @@ function pct(num: number, denom: number): number {
   return Math.min(100, Math.max(0, (num / denom) * 100))
 }
 
+function clamp01(n: number): number {
+  return Math.min(1, Math.max(0, n))
+}
+
 function ActionIcon({ action }: { action: string }) {
   if (action === 'create') return <Doc className="size-4" />
   if (action === 'update') return <Activity className="size-4" />
@@ -63,17 +67,19 @@ export function DashboardClient(props: DashboardClientProps) {
   const storagePct = pct(props.r2UsedBytes, props.r2FreeTierBytes)
 
   const kpis: KpiTile[] = [
-    { title: 'Drafts', value: props.draftCount, icon: <Doc className="size-5" /> },
-    { title: 'Published', value: props.publishedCount, icon: <Activity className="size-5" /> },
+    { title: 'Drafts', value: props.draftCount, level: clamp01(props.draftCount / 10), icon: <Doc className="size-5" /> },
+    { title: 'Published', value: props.publishedCount, level: clamp01(props.publishedCount / 50), icon: <Activity className="size-5" /> },
     {
       title: 'Subscribers',
       value: props.subscriberCount ?? 0,
+      level: clamp01((props.subscriberCount ?? 0) / 1000),
       delta: props.subscriberCount === null ? { sign: 'flat', label: 'Not configured' } : undefined,
       icon: <Folder className="size-5" />,
     },
     {
       title: 'Page views (30d)',
       value: props.pageViews30d ?? 0,
+      level: clamp01((props.pageViews30d ?? 0) / 5000),
       delta: props.pageViews30d === null ? { sign: 'flat', label: 'Not configured' } : undefined,
       icon: <Calendar className="size-5" />,
     },
@@ -113,38 +119,56 @@ export function DashboardClient(props: DashboardClientProps) {
         </div>
       </div>
 
-      {/* KPI row */}
+      {/* KPI row — VU meters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
-          <MagicCard
+          <div
             key={kpi.title}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5"
-            gradientSize={180}
-            gradientColor="var(--color-glow)"
-            gradientFrom="var(--color-accent)"
-            gradientTo="var(--color-accent-hover)"
-            gradientOpacity={0.18}
+            className="relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{kpi.title}</span>
+              <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
+                {kpi.title}
+              </span>
               <span className="text-[var(--color-fg-muted)]">{kpi.icon}</span>
             </div>
-            <div className="mt-3 text-3xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-              <NumberTicker value={kpi.value} className="!text-[var(--color-fg)]" />
-            </div>
-            {kpi.delta && (
-              <p
-                className={cn(
-                  'mt-1 text-xs',
-                  kpi.delta.sign === 'up' && 'text-[var(--color-positive)]',
-                  kpi.delta.sign === 'down' && 'text-[var(--color-negative)]',
-                  kpi.delta.sign === 'flat' && 'text-[var(--color-fg-subtle)]'
-                )}
+            <div className="mt-3 flex items-baseline gap-2">
+              <span
+                className="text-3xl font-bold tabular-nums"
+                style={{ fontFamily: 'var(--font-display)' }}
               >
-                {kpi.delta.label}
-              </p>
-            )}
-          </MagicCard>
+                <NumberTicker value={kpi.value} className="!text-[var(--color-fg)]" />
+              </span>
+              {kpi.delta && (
+                <span
+                  className={cn(
+                    'text-[10px] uppercase tracking-[0.14em]',
+                    kpi.delta.sign === 'up' && 'text-[var(--color-positive)]',
+                    kpi.delta.sign === 'down' && 'text-[var(--color-negative)]',
+                    kpi.delta.sign === 'flat' && 'text-[var(--color-fg-subtle)]'
+                  )}
+                >
+                  {kpi.delta.label}
+                </span>
+              )}
+            </div>
+            {/* VU bar — two layers: track at 6% opacity, fill on top with a
+             * 1px amber hairline. The fill width tracks `kpi.level` so the
+             * dashboard reads as four faders rising and falling. */}
+            <div
+              className="mt-5 h-1 rounded-full overflow-hidden"
+              style={{ backgroundColor: 'var(--color-border)' }}
+              aria-hidden
+            >
+              <div
+                className="h-full rounded-full transition-[width] duration-700"
+                style={{
+                  width: `${kpi.level * 100}%`,
+                  background: 'linear-gradient(90deg, var(--color-accent-hover), var(--color-accent))',
+                }}
+              />
+            </div>
+          </div>
         ))}
       </div>
 
@@ -300,28 +324,22 @@ export function DashboardClient(props: DashboardClientProps) {
         </div>
       </div>
 
-      {/* Tips marquee */}
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden">
-        <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-          <span className="text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">Tips & shortcuts</span>
-        </div>
-        <Marquee pauseOnHover className="[--duration:30s] [--gap:1rem]">
-          {[
-            '⌘ N — new article',
-            '⌘ S — save draft',
-            'BlockNote autosaves every keystroke',
-            'Cover images: 1200×630 recommended',
-            'SEO description: 140–160 chars',
-            'Weekly cleanup runs Sunday 03:00 UTC',
-          ].map((tip) => (
-            <div
-              key={tip}
-              className="px-4 py-2 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)] text-sm text-[var(--color-fg-muted)] whitespace-nowrap"
-            >
-              {tip}
-            </div>
-          ))}
-        </Marquee>
+      {/* Live signal — single restrained strip, not a marquee. Reads as a
+       * quiet "powered-up" indicator between content blocks. */}
+      <div className="flex items-center gap-3 px-1">
+        <span
+          className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]"
+          style={{ fontFamily: 'var(--font-mono)' }}
+        >
+          On air
+        </span>
+        <div className="signal-strip flex-1" aria-hidden />
+        <span
+          className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]"
+          style={{ fontFamily: 'var(--font-mono)' }}
+        >
+          30d window
+        </span>
       </div>
     </div>
   )

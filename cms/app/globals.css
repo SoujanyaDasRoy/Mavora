@@ -53,64 +53,67 @@
   --duration: 30s;
 }
 
-/* ----- Light theme (default) ----- */
+/* ----- Light theme (studio off-duty / daylight reading) ----- */
 :root {
-  --color-bg: #FAF6EE;
-  --color-bg-secondary: #F3EDE0;
-  --color-bg-tertiary: #EAE2D2;
+  --color-bg: #F4EFE6;
+  --color-bg-secondary: #EBE4D5;
+  --color-bg-tertiary: #E0D7C4;
   --color-bg-elevated: #FFFFFF;
   --color-bg-overlay: rgba(255, 255, 255, 0.85);
-  --color-fg: #0d0d0d;
-  --color-fg-muted: #5C5850;
-  --color-fg-subtle: #6E6A60;
-  --color-border: #E5DEC9;
-  --color-border-strong: #D8CEB4;
-  --color-accent: #cf2743;
-  --color-accent-hover: #b31f38;
-  --color-glow: rgba(207, 39, 67, 0.18);
-  --color-positive: #1F8A4A;
-  --color-negative: #B81F37;
+  --color-fg: #1A1816;
+  --color-fg-muted: #5C564C;
+  --color-fg-subtle: #807868;
+  --color-border: #D8CEB4;
+  --color-border-strong: #C2B598;
+  /* VU-meter amber. Replaces the default red so the only color that "lights
+   * up" reads as a signal — not a brand mark. Used sparingly: active nav,
+   * save-state, focus rings, publish button. */
+  --color-accent: #B6791F;
+  --color-accent-hover: #985F12;
+  --color-glow: rgba(182, 121, 31, 0.18);
+  --color-positive: #4F7A35;
+  --color-negative: #B54327;
   --color-warning: #C77B0F;
 }
 
-/* ----- Dark theme (warm dark, not blue) ----- */
+/* ----- Warm dark (studio on, default CMS mode) ----- */
 .dark {
-  --color-bg: #393836;
-  --color-bg-secondary: #302F2D;
-  --color-bg-tertiary: #272624;
-  --color-bg-elevated: #434140;
-  --color-bg-overlay: rgba(48, 47, 45, 0.85);
-  --color-fg: #f0f0f0;
-  --color-fg-muted: #b0b0b0;
-  --color-fg-subtle: #a8a8a8;
-  --color-border: #4A4846;
-  --color-border-strong: #565452;
-  --color-accent: #cf2743;
-  --color-accent-hover: #e63a55;
-  --color-glow: rgba(207, 39, 67, 0.22);
-  --color-positive: #22C55E;
-  --color-negative: #EF4444;
-  --color-warning: #F59E0B;
+  --color-bg: #1A1816;
+  --color-bg-secondary: #252220;
+  --color-bg-tertiary: #2E2A26;
+  --color-bg-elevated: #332F2C;
+  --color-bg-overlay: rgba(26, 24, 22, 0.85);
+  --color-fg: #F2EDE5;
+  --color-fg-muted: #B0A693;
+  --color-fg-subtle: #807868;
+  --color-border: #3A3530;
+  --color-border-strong: #4A443E;
+  --color-accent: #E8A33D;
+  --color-accent-hover: #F2B652;
+  --color-glow: rgba(232, 163, 61, 0.22);
+  --color-positive: #7FB069;
+  --color-negative: #E07856;
+  --color-warning: #E8A33D;
 }
 
-/* ----- OLED dark (true black + cool accent) ----- */
+/* ----- OLED dark (deep night booth) ----- */
 .dark.oled {
   --color-bg: #000000;
-  --color-bg-secondary: #0A0A0C;
-  --color-bg-tertiary: #050507;
-  --color-bg-elevated: #111114;
-  --color-bg-overlay: rgba(10, 10, 12, 0.85);
-  --color-fg: #EDEDEF;
+  --color-bg-secondary: #0A0908;
+  --color-bg-tertiary: #050403;
+  --color-bg-elevated: #141210;
+  --color-bg-overlay: rgba(10, 9, 8, 0.85);
+  --color-fg: #F2EDE5;
   --color-fg-muted: #8A8F98;
   --color-fg-subtle: #5C6068;
-  --color-border: #1F1F24;
-  --color-border-strong: #2A2A30;
-  --color-accent: #5E6AD2;
-  --color-accent-hover: #7882E0;
-  --color-glow: rgba(94, 106, 210, 0.28);
-  --color-positive: #22C55E;
-  --color-negative: #EF4444;
-  --color-warning: #F59E0B;
+  --color-border: #1F1C18;
+  --color-border-strong: #2A2620;
+  --color-accent: #F2B652;
+  --color-accent-hover: #FFD27A;
+  --color-glow: rgba(242, 182, 82, 0.28);
+  --color-positive: #7FB069;
+  --color-negative: #E07856;
+  --color-warning: #F2B652;
 }
 
 /* shadcn / @base-ui neutral aliases — map onto Mavora tokens */
@@ -298,6 +301,45 @@
     radial-gradient(at 80% 30%, var(--color-accent), transparent 60%);
   background-size: var(--bg-size, 300%) var(--bg-size, 300%);
   animation: aurora 60s linear infinite;
+}
+
+/* VU-meter pulse — the single accent animation. A live dot expands and
+ * fades outward like a recording-studio signal. Used by the status bar
+ * (`components/status-bar.tsx`) and the dashboard's signal strip. Respects
+ * reduced-motion via the blanket override below. */
+@keyframes vu-pulse {
+  0%   { transform: scale(1);    opacity: 0.85; }
+  70%  { transform: scale(2.4);  opacity: 0; }
+  100% { transform: scale(2.4);  opacity: 0; }
+}
+@keyframes signal-flow {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+.vu-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  opacity: 0;
+  animation: vu-pulse 2.2s ease-out infinite;
+}
+/* Faint horizontal signal strip used by the dashboard header. Reads as a
+ * quiet "live" indicator without being a loading skeleton or progress bar. */
+.signal-strip {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-accent) 30%,
+    var(--color-accent-hover) 50%,
+    var(--color-accent) 70%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: signal-flow 6s linear infinite;
+  opacity: 0.55;
 }
 
 /* Respect users who prefer reduced motion across the whole site --

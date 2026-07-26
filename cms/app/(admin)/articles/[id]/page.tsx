@@ -230,15 +230,15 @@ export default function EditArticlePage() {
       </div>
 
       {/* Title */}
-      <div>
+      <div className="relative group">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleTitleBlur}
-          placeholder="Untitled"
+          placeholder="Untitled Manuscript"
           aria-label="Article title"
-          className="w-full bg-transparent border-0 outline-none text-4xl md:text-5xl font-bold placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
+          className="w-full bg-transparent border-b-2 border-transparent focus:border-[var(--color-accent)] transition-colors duration-300 outline-none text-4xl md:text-5xl font-bold placeholder:text-[var(--color-fg-subtle)] py-2"
           style={{ fontFamily: 'var(--font-display)' }}
         />
       </div>
@@ -270,7 +270,7 @@ export default function EditArticlePage() {
       {/* Editor + rail */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
         <MagicCard
-          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-4 min-h-[480px]"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-4 min-h-[480px] shadow-inner"
           gradientSize={200}
           gradientFrom="var(--color-accent)"
           gradientTo="var(--color-accent-hover)"
@@ -532,10 +532,10 @@ function CoverArea({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={cn(
-        'rounded-xl border-2 border-dashed cursor-pointer transition-colors p-8 text-center',
+        'rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 p-8 text-center bg-[var(--color-bg-secondary)]/60 shadow-inner',
         dragOver
-          ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
-          : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+          ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10'
+          : 'border-[var(--color-border)] hover:border-[var(--color-accent)]/50'
       )}
     >
       <p className="text-sm font-medium text-[var(--color-fg)]">

@@ -1,12 +1,12 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
 import { Asleep, Light, Moon } from '@carbon/icons-react'
-import { Button } from '@/components/ui/button'
-import { useTheme } from '@/components/theme-provider'
-import { MobileSidebar } from '@/components/sidebar'
+import { useTheme, type Theme } from '@/components/theme-provider'
+import { MobileSidebar } from '@/components/Sidebar'
 import type { Role } from '@/lib/writers'
 
 const LABELS: Record<string, string> = {
@@ -27,10 +27,70 @@ function buildCrumbs(pathname: string) {
   })
 }
 
-function ThemeIcon({ theme }: { theme: 'light' | 'dark' | 'dark-oled' }) {
-  if (theme === 'light') return <Light className="size-4" />
-  if (theme === 'dark') return <Moon className="size-4" />
-  return <Asleep className="size-4" />
+/**
+ * Single theme-toggle pill. Reads as a labeled instrument knob rather than
+ * a bare icon button — the label tells the user which mode they're in and
+ * what the next click will do. Three states cycle Light → Dark → OLED.
+ */
+function ThemePill({ theme, onCycle }: { theme: Theme; onCycle: () => void }) {
+  const ICONS: Record<Theme, React.ReactNode> = {
+    light: <Light className="size-3.5" />,
+    dark: <Moon className="size-3.5" />,
+    'dark-oled': <Asleep className="size-3.5" />,
+  }
+  const NAMES: Record<Theme, string> = {
+    light: 'Light',
+    dark: 'Dark',
+    'dark-oled': 'OLED',
+  }
+  return (
+    <button
+      type="button"
+      onClick={onCycle}
+      aria-label={`Theme: ${NAMES[theme]}. Click to cycle.`}
+      className="group inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] transition-colors"
+      style={{
+        backgroundColor: 'var(--color-bg-secondary)',
+        borderColor: 'var(--color-border)',
+        color: 'var(--color-fg-muted)',
+        fontFamily: 'var(--font-mono)',
+      }}
+    >
+      <span className="text-[var(--color-fg-subtle)] group-hover:text-[var(--color-fg)]">
+        {ICONS[theme]}
+      </span>
+      <span>{NAMES[theme]}</span>
+    </button>
+  )
+}
+
+/**
+ * Server-rendered stamp that fills in on the client. Shown in mono caps so
+ * it reads like a console timestamp next to the breadcrumb — quiet but
+ * precise.
+ */
+function Timestamp() {
+  const [stamp, setStamp] = useState<string | null>(null)
+  useEffect(() => {
+    function tick() {
+      const d = new Date()
+      const date = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' })
+      const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+      setStamp(`${date} · ${time}`)
+    }
+    tick()
+    const id = window.setInterval(tick, 30_000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  return (
+    <span
+      className="hidden lg:inline text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)] tabular-nums"
+      style={{ fontFamily: 'var(--font-mono)' }}
+    >
+      {stamp ?? '— —'}
+    </span>
+  )
 }
 
 export function TopBar({ role }: { role: Role }) {
@@ -63,16 +123,9 @@ export function TopBar({ role }: { role: Role }) {
         ))}
       </nav>
 
-      <div className="ml-auto flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={`Theme: ${theme}. Click to cycle.`}
-          onClick={cycleTheme}
-          title={`Theme: ${theme}`}
-        >
-          <ThemeIcon theme={theme} />
-        </Button>
+      <div className="ml-auto flex items-center gap-3">
+        <Timestamp />
+        <ThemePill theme={theme} onCycle={cycleTheme} />
         <UserButton signInUrl="/login" />
       </div>
     </header>

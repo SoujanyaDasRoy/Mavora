@@ -191,16 +191,18 @@ export default function NewArticlePage() {
       </div>
 
       {/* Title */}
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={handleTitleBlur}
-        placeholder="Untitled"
-        aria-label="Article title"
-        className="w-full bg-transparent border-0 outline-none text-4xl md:text-5xl font-bold placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
-        style={{ fontFamily: 'var(--font-display)' }}
-      />
+      <div className="relative group">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={handleTitleBlur}
+          placeholder="Untitled Manuscript"
+          aria-label="Article title"
+          className="w-full bg-transparent border-b-2 border-transparent focus:border-[var(--color-accent)] transition-colors duration-300 outline-none text-4xl md:text-5xl font-bold placeholder:text-[var(--color-fg-subtle)] py-2"
+          style={{ fontFamily: 'var(--font-display)' }}
+        />
+      </div>
 
       {/* Cover */}
       <CoverArea
@@ -228,7 +230,7 @@ export default function NewArticlePage() {
 
       {/* Editor (no rail on new -- SEO/publish live in the full editor) */}
       <MagicCard
-        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-4 min-h-[480px]"
+        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-4 min-h-[480px] shadow-inner"
         gradientSize={200}
         gradientFrom="var(--color-accent)"
         gradientTo="var(--color-accent-hover)"
@@ -346,10 +348,10 @@ function CoverArea({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={cn(
-        'rounded-xl border-2 border-dashed cursor-pointer transition-colors p-8 text-center',
+        'rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 p-8 text-center bg-[var(--color-bg-secondary)]/60 shadow-inner',
         dragOver
-          ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
-          : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+          ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10'
+          : 'border-[var(--color-border)] hover:border-[var(--color-accent)]/50'
       )}
     >
       <p className="text-sm font-medium text-[var(--color-fg)]">

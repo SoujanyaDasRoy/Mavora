@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono, Outfit } from "next/font/google";
+import { Newsreader, Inter, JetBrains_Mono, Outfit } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-const fontDisplay = Space_Grotesk({
+// Newsreader — a transitional serif designed for long-read body text.
+// Chosen as the display face because it carries editorial weight without
+// slipping into "AI-default cream + serif + terracotta" territory (the
+// skill called that look out by name). It's also a Google-hosted variable
+// font, so weights 200–800 are all served from one file.
+const fontDisplay = Newsreader({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
 });
 const fontSans = Inter({
   subsets: ["latin"],

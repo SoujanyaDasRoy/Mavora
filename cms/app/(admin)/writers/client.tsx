@@ -128,7 +128,7 @@ export function WritersClient({ writers, lastActivity }: WritersClientProps) {
             className="text-white"
             disabled={invite.status === 'submitting' || !email.trim()}
           >
-            {invite.status === 'submitting' ? 'Sending…' : 'Send invite'}
+            {invite.status === 'submitting' ? 'Recording…' : 'Record invite'}
           </ShimmerButton>
         </form>
         {invite.status === 'success' && (

@@ -25,21 +25,21 @@ const THEMES: Array<{
 }> = [
   {
     id: 'light',
-    label: 'Light',
-    description: 'Warm cream backdrop with the brand red.',
-    preview: { bg: '#FAF6EE', fg: '#0d0d0d', accent: '#cf2743', accentName: 'Brand red' },
+    label: 'Light (Daylight)',
+    description: 'Warm cream backdrop for bright daylight reading.',
+    preview: { bg: '#F4EFE6', fg: '#1A1816', accent: '#B6791F', accentName: 'Warm Amber' },
   },
   {
     id: 'dark',
-    label: 'Dark',
-    description: 'Warm dark grey for long writing sessions.',
-    preview: { bg: '#393836', fg: '#f0f0f0', accent: '#cf2743', accentName: 'Brand red' },
+    label: 'Studio Booth (Dark)',
+    description: 'Warm dark booth mode for long editorial focus sessions.',
+    preview: { bg: '#1A1816', fg: '#F2EDE5', accent: '#E8A33D', accentName: 'VU Amber' },
   },
   {
     id: 'dark-oled',
-    label: 'OLED',
-    description: 'True black with a cool indigo accent. Saves OLED pixels.',
-    preview: { bg: '#000000', fg: '#EDEDEF', accent: '#5E6AD2', accentName: 'Indigo' },
+    label: 'Night Booth (OLED)',
+    description: 'Deep black with amber glow. Saves OLED pixels.',
+    preview: { bg: '#000000', fg: '#F2EDE5', accent: '#F2B652', accentName: 'Bright Amber' },
   },
 ]
 
