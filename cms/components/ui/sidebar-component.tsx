@@ -8,9 +8,6 @@ import {
   FileText, 
   PlusCircle, 
   Globe, 
-  BarChart3, 
-  Users, 
-  Settings, 
   Search, 
   ChevronDown, 
   HardDrive,
@@ -48,30 +45,30 @@ export function TwoLevelSidebar() {
         />
       )}
 
-      {/* Kevin Dukkon Financial Dashboard Sidebar — 25% Partition */}
+      {/* Kevin Dukkon Financial Dashboard Sidebar — Fixed 288px Width Column */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 w-4/5 md:w-1/4 bg-[#302F2D] border-r border-[#4A4846] flex flex-col justify-between p-5 transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-40 w-72 bg-[#302F2D] border-r border-[#4A4846] flex flex-col justify-between p-6 transition-transform duration-300 md:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="space-y-6 overflow-y-auto pr-1">
           
           {/* Header & Workspace Switcher */}
-          <div className="flex items-center justify-between pb-4 border-b border-[#4A4846]/70">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="pb-5 border-b border-[#4A4846]/70">
+            <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#cf2743] to-[#9e1b30] flex items-center justify-center font-extrabold text-white text-xl shadow-md shadow-[#cf2743]/20 shrink-0">
                 M
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-base text-white tracking-tight leading-none truncate">
+                  <span className="font-extrabold text-base text-white tracking-tight leading-snug truncate">
                     Mavora
                   </span>
                   <span className="px-1.5 py-0.5 rounded bg-[#cf2743]/20 text-[#cf2743] text-[9px] font-bold uppercase tracking-wider">
                     PRO
                   </span>
                 </div>
-                <button className="flex items-center gap-1 text-[11px] font-medium text-[#b0b0b0] hover:text-white mt-1 transition text-left cursor-pointer truncate">
+                <button className="flex items-center gap-1 text-[11px] font-medium text-[#b0b0b0] hover:text-white mt-0.5 transition text-left cursor-pointer truncate">
                   <span className="truncate">Production CMS</span>
                   <ChevronDown className="h-3 w-3 shrink-0" />
                 </button>
@@ -80,23 +77,23 @@ export function TwoLevelSidebar() {
           </div>
 
           {/* Quick Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#b0b0b0]" />
+          <div className="relative flex items-center">
+            <Search className="absolute left-3.5 h-4 w-4 text-[#b0b0b0] pointer-events-none" />
             <input
               type="text"
               placeholder="Quick search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 rounded-xl bg-[#393836] border border-[#4A4846] text-xs text-white placeholder-[#b0b0b0] focus:outline-none focus:border-[#cf2743] transition"
+              className="w-full h-10 pl-10 pr-9 rounded-xl bg-[#393836] border border-[#4A4846] text-xs text-white placeholder-[#b0b0b0] focus:outline-none focus:border-[#cf2743] transition leading-normal"
             />
-            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-[#4A4846]/60 text-[10px] font-mono text-[#b0b0b0]">
+            <kbd className="absolute right-3 px-1.5 py-0.5 rounded bg-[#4A4846]/60 text-[10px] font-mono text-[#b0b0b0] pointer-events-none">
               ⌘K
             </kbd>
           </div>
 
           {/* Navigation Section 1: GENERAL */}
           <div className="space-y-1">
-            <div className="px-3 pb-1 text-[10px] font-bold text-[#b0b0b0] uppercase tracking-widest">
+            <div className="px-3 pb-2 text-[10px] font-bold text-[#b0b0b0] uppercase tracking-widest">
               General
             </div>
             
@@ -152,7 +149,7 @@ export function TwoLevelSidebar() {
 
           {/* Navigation Section 2: MANAGEMENT */}
           <div className="space-y-1 pt-2">
-            <div className="px-3 pb-1 text-[10px] font-bold text-[#b0b0b0] uppercase tracking-widest">
+            <div className="px-3 pb-2 text-[10px] font-bold text-[#b0b0b0] uppercase tracking-widest">
               Management
             </div>
 
@@ -171,19 +168,19 @@ export function TwoLevelSidebar() {
           </div>
 
           {/* Sidebar Bottom Pro / Storage Widget */}
-          <div className="p-4 rounded-2xl bg-[#393836] border border-[#4A4846] space-y-3">
+          <div className="p-4 rounded-2xl bg-[#393836] border border-[#4A4846] space-y-3 mt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <HardDrive className="h-4 w-4 text-[#cf2743]" />
+                <HardDrive className="h-4 w-4 text-[#cf2743] shrink-0" />
                 <span className="text-xs font-bold text-white">Storage</span>
               </div>
               <span className="text-[10px] font-semibold text-[#b0b0b0]">0.4 GB / 10 GB</span>
             </div>
-            <div className="h-1.5 w-full rounded-full bg-[#4A4846] overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-[#4A4846] overflow-hidden">
               <div className="h-full bg-[#cf2743] rounded-full w-[4%]" />
             </div>
-            <button className="w-full py-1.5 rounded-xl bg-[#302F2D] hover:bg-[#272624] border border-[#4A4846] text-[11px] font-bold text-white transition flex items-center justify-center gap-1.5 cursor-pointer">
-              <Sparkles className="h-3 w-3 text-[#cf2743]" />
+            <button className="w-full h-9 rounded-xl bg-[#302F2D] hover:bg-[#272624] border border-[#4A4846] text-xs font-bold text-white transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <Sparkles className="h-3.5 w-3.5 text-[#cf2743]" />
               Manage Plan
             </button>
           </div>
