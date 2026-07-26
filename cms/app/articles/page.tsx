@@ -5,11 +5,11 @@ import { TwoLevelSidebar } from '@/components/ui/sidebar-component'
 export default function ArticlesPage() {
   return (
     <div className="flex min-h-screen bg-[#393836]">
-      {/* Fixed 288px Sidebar */}
+      {/* Professional SaaS Sidebar */}
       <TwoLevelSidebar />
 
-      {/* Main Partition */}
-      <main className="flex-1 md:pl-72 min-h-screen bg-[#393836]" />
+      {/* Main Content Area */}
+      <main className="flex-1 md:pl-68 min-h-screen bg-[#393836]" />
     </div>
   )
 }
