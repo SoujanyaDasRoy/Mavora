@@ -33,3 +33,62 @@ export async function deleteOldAuditLogs(
     .run()
   return result.meta.changes ?? 0
 }
+
+export interface AuditEvent {
+  id: string
+  actorId: string
+  actorName: string | null
+  action: string
+  articleId: string | null
+  articleTitle: string | null
+  createdAt: string
+}
+
+/**
+ * Returns the most recent N audit events joined with writer display names and
+ * article titles, so the dashboard's activity feed can render readable rows
+ * without N+1 lookups. Resolves actor/article FK misses to NULL — an audit
+ * row may outlive its referenced row (e.g. writer deleted, article deleted)
+ * and we still want to show the event.
+ */
+export async function getRecentAuditEvents(
+  db: D1Database,
+  limit: number = 20
+): Promise<AuditEvent[]> {
+  const safeLimit = Math.max(1, Math.min(100, Math.floor(limit)))
+  const result = await db
+    .prepare(
+      `SELECT audit_log.id          AS id,
+              audit_log.actor_id     AS actor_id,
+              audit_log.action       AS action,
+              audit_log.article_id   AS article_id,
+              audit_log.created_at   AS created_at,
+              writers.display_name   AS actor_name,
+              articles.title         AS article_title
+         FROM audit_log
+         LEFT JOIN writers  ON writers.id  = audit_log.actor_id
+         LEFT JOIN articles ON articles.id = audit_log.article_id
+         ORDER BY audit_log.created_at DESC
+         LIMIT ?`
+    )
+    .bind(safeLimit)
+    .all<{
+      id: string
+      actor_id: string
+      action: string
+      article_id: string | null
+      created_at: string
+      actor_name: string | null
+      article_title: string | null
+    }>()
+
+  return (result.results ?? []).map((row) => ({
+    id: row.id,
+    actorId: row.actor_id,
+    actorName: row.actor_name,
+    action: row.action,
+    articleId: row.article_id,
+    articleTitle: row.article_title,
+    createdAt: row.created_at,
+  }))
+}

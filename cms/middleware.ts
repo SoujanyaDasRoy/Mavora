@@ -4,6 +4,9 @@ import { isTrustedOrigin } from './lib/csrf'
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
   '/articles(.*)',
+  '/media(.*)',
+  '/writers(.*)',
+  '/settings(.*)',
   '/api/articles(.*)',
   '/api/media(.*)',
   '/api/writers(.*)',

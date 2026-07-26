@@ -109,14 +109,17 @@ export async function listArticles(
   db: D1Database,
   filter: { authorId?: string }
 ): Promise<Article[]> {
+  // Join writers (NOT writer — there is no `writer` table) for the author
+  // display name shown in the admin list. Writers table is `writers` and
+  // the column is `display_name`, not `name`.
   const result = filter.authorId
     ? await db.prepare(
-        'SELECT articles.*, writer.name as author_name FROM articles LEFT JOIN writer ON articles.author_id = writer.id WHERE articles.author_id = ? ORDER BY articles.updated_at DESC'
+        'SELECT articles.*, writers.display_name as author_name FROM articles LEFT JOIN writers ON articles.author_id = writers.id WHERE articles.author_id = ? ORDER BY articles.updated_at DESC'
       )
       .bind(filter.authorId)
       .all()
     : await db.prepare(
-        'SELECT articles.*, writer.name as author_name FROM articles LEFT JOIN writer ON articles.author_id = writer.id ORDER BY articles.updated_at DESC'
+        'SELECT articles.*, writers.display_name as author_name FROM articles LEFT JOIN writers ON articles.author_id = writers.id ORDER BY articles.updated_at DESC'
       ).all()
   return result.results.map(rowToArticle)
 }

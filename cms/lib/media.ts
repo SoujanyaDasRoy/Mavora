@@ -153,3 +153,109 @@ export function getPublicMediaUrl(r2Key: string): string {
   }
   return `${base.replace(/\/+$/, '')}/${r2Key}`
 }
+
+export interface MediaRecord {
+  id: string
+  articleId: string
+  articleTitle: string | null
+  r2Key: string
+  altText: string
+  createdAt: string
+}
+
+/**
+ * Lists media rows scoped to the caller. Admins see every media item;
+ * writers only see media attached to articles they authored. Joins the
+ * owning article's title for the `/media` gallery view. Returns the newest
+ * uploads first.
+ *
+ * A writer who is also an author of zero articles will see an empty list,
+ * not an error -- the join is LEFT so articles that have been deleted but
+ * still leave a media row (only briefly, before cleanup) render as
+ * `articleTitle: null` rather than vanishing.
+ */
+export async function listMedia(
+  db: D1Database,
+  scope: { authorId?: string; isAdmin: boolean }
+): Promise<MediaRecord[]> {
+  const baseQuery = `
+    SELECT media.id          AS id,
+           media.article_id   AS article_id,
+           media.r2_key       AS r2_key,
+           media.alt_text     AS alt_text,
+           media.created_at   AS created_at,
+           articles.title     AS article_title
+      FROM media
+      LEFT JOIN articles ON articles.id = media.article_id
+  `
+
+  const result = scope.isAdmin
+    ? await db
+        .prepare(`${baseQuery} ORDER BY media.created_at DESC LIMIT 500`)
+        .all<{
+          id: string
+          article_id: string
+          r2_key: string
+          alt_text: string
+          created_at: string
+          article_title: string | null
+        }>()
+    : await db
+        .prepare(
+          `${baseQuery}
+            WHERE articles.author_id = ?
+            ORDER BY media.created_at DESC
+            LIMIT 500`
+        )
+        .bind(scope.authorId)
+        .all<{
+          id: string
+          article_id: string
+          r2_key: string
+          alt_text: string
+          created_at: string
+          article_title: string | null
+        }>()
+
+  return (result.results ?? []).map((row) => ({
+    id: row.id,
+    articleId: row.article_id,
+    articleTitle: row.article_title,
+    r2Key: row.r2_key,
+    altText: row.alt_text,
+    createdAt: row.created_at,
+  }))
+}
+
+/**
+ * Deletes a single media row by id and removes the backing R2 object.
+ * Returns `true` on success, `false` if no row matched the id. R2 delete
+ * failures are swallowed (logged) for the same reason as
+ * `deleteMediaObjects`: a partial cleanup is recoverable via the weekly
+ * `cleanupOrphanedMedia` cron (see lib/media-cleanup.ts).
+ *
+ * Callers should already have verified the requester is allowed to delete
+ * this row (admin, or the article's own author); this function does not
+ * re-check ownership to keep it composable for the orphan-cleanup path
+ * and any future tooling.
+ */
+export async function deleteMediaById(
+  db: D1Database,
+  bucket: R2Bucket,
+  id: string
+): Promise<boolean> {
+  const row = await db
+    .prepare('SELECT r2_key FROM media WHERE id = ?')
+    .bind(id)
+    .first<{ r2_key: string }>()
+  if (!row) return false
+
+  try {
+    await bucket.delete(row.r2_key)
+  } catch (error) {
+    console.error(`Failed to delete R2 object ${row.r2_key} for media ${id}`, error)
+  }
+
+  await db.prepare('DELETE FROM media WHERE id = ?').bind(id).run()
+  return true
+}
