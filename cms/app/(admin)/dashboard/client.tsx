@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { Activity, Calendar, Doc, Folder } from '@carbon/icons-react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { MagicCard } from '@/components/ui/magic-card'
@@ -104,11 +103,12 @@ export function DashboardClient(props: DashboardClientProps) {
             </p>
           </div>
           <ShimmerButton
+            href="/articles/new"
             background="var(--color-accent)"
             shimmerColor="rgba(255,255,255,0.35)"
             className="text-white"
           >
-            <Link href="/articles/new">+ New Article</Link>
+            + New Article
           </ShimmerButton>
         </div>
       </div>

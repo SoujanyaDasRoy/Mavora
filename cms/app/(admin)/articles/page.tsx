@@ -93,12 +93,11 @@ export default async function ArticlesListPage() {
           </p>
         </div>
         <ShimmerButton
+          href="/articles/new"
           background="var(--color-accent)"
           shimmerColor="rgba(255,255,255,0.35)"
         >
-          <Link href="/articles/new" className="text-white inline-flex items-center gap-2">
-            + New Article
-          </Link>
+          + New Article
         </ShimmerButton>
       </div>
 
