@@ -11,6 +11,7 @@ const baseArticle: Article = {
   blocknoteContent: '[]',
   seoTitle: 'My Post — SEO Title',
   seoDescription: 'A short description under 160 chars.',
+  seoKeywords: null,
   coverImage: 'articles/a1/cover.webp',
   authorId: 'w1',
   createdAt: '2026-07-18T00:00:00Z',
@@ -55,5 +56,21 @@ describe('buildFrontmatter', () => {
   it('escapes literal backslashes in the seoDescription', () => {
     const yaml = buildFrontmatter({ ...baseArticle, seoDescription: 'Path is C:\\temp\\file, see docs.' })
     expect(yaml).toContain('description: "Path is C:\\\\temp\\\\file, see docs."')
+  })
+
+  it('emits tags as an empty YAML sequence when seoKeywords is null', () => {
+    const yaml = buildFrontmatter({ ...baseArticle, seoKeywords: null })
+    expect(yaml).toContain('tags: []')
+  })
+
+  it('parses comma-separated keywords into a deduplicated, trimmed YAML sequence', () => {
+    const yaml = buildFrontmatter({ ...baseArticle, seoKeywords: 'ai, machine-learning , AI , productivity' })
+    // "AI" (case-insensitive dup) is dropped; "ai" is kept as first-seen
+    expect(yaml).toContain('tags: ["ai", "machine-learning", "productivity"]')
+  })
+
+  it('emits no tags key path when keyword list is empty', () => {
+    const yaml = buildFrontmatter({ ...baseArticle, seoKeywords: '   ,  ,   ' })
+    expect(yaml).toContain('tags: []')
   })
 })

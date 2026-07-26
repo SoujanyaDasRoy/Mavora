@@ -10,6 +10,7 @@ export interface Article {
   blocknoteContent: string
   seoTitle: string | null
   seoDescription: string | null
+  seoKeywords: string | null
   coverImage: string | null
   authorId: string
   authorName?: string
@@ -37,6 +38,7 @@ function rowToArticle(row: any): Article {
     blocknoteContent: row.blocknote_content,
     seoTitle: row.seo_title,
     seoDescription: row.seo_description,
+    seoKeywords: row.seo_keywords,
     coverImage: row.cover_image,
     authorId: row.author_id,
     authorName: row.author_name,
@@ -130,7 +132,7 @@ export async function updateArticle(
   patch: Partial<
     Pick<
       Article,
-      'title' | 'pillar' | 'blocknoteContent' | 'seoTitle' | 'seoDescription' | 'coverImage'
+      'title' | 'pillar' | 'blocknoteContent' | 'seoTitle' | 'seoDescription' | 'seoKeywords' | 'coverImage'
     >
   >
 ): Promise<Article> {
@@ -156,6 +158,10 @@ export async function updateArticle(
   if (patch.seoDescription !== undefined) {
     fields.push('seo_description = ?')
     values.push(patch.seoDescription)
+  }
+  if (patch.seoKeywords !== undefined) {
+    fields.push('seo_keywords = ?')
+    values.push(patch.seoKeywords)
   }
   if (patch.coverImage !== undefined) {
     fields.push('cover_image = ?')

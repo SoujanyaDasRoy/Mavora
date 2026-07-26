@@ -13,6 +13,7 @@ const patchSchema = z.object({
   blocknoteContent: z.string().optional(),
   seoTitle: z.string().nullable().optional(),
   seoDescription: z.string().nullable().optional(),
+  seoKeywords: z.string().nullable().optional(),
   coverImage: z.string().nullable().optional(),
 })
 

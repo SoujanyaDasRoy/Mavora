@@ -1,86 +1,99 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { BlockNoteView } from '@blocknote/mantine'
+import { useCreateBlockNote } from '@blocknote/react'
+import '@blocknote/core/fonts/inter.css'
+import '@blocknote/mantine/style.css'
+import { uploadMediaFile, getPublicMediaUrl } from '@/lib/media-client'
 
-/**
- * Placeholder BlockNote replacement.
- *
- * The original article pages import a `BlockEditor` from
- * `@/components/BlockEditor` that wraps `@blocknote/react`. The wrapper
- * file was removed from the tree (along with the rest of the legacy
- * Masonry/AdminHeader chrome) and BlockNote itself has not yet been
- * re-wired into the new `app/(admin)/...` pages. This stub preserves the
- * exact `initialContent` / `onChange` / `getArticleId` surface so the
- * editor pages compile and existing autosave flows (`onChange` called
- * after every keystroke) keep working unchanged.
- *
- * Until a real BlockNote re-integration lands, the editor renders the
- * raw BlockNote JSON in a styled `<pre>` and lets the user edit it
- * directly. Save -> onChange flow is preserved.
- */
 export interface BlockEditorProps {
   initialContent: string
+  articleId?: string
   onChange?: (json: string) => void | Promise<void>
   getArticleId?: () => Promise<string>
 }
 
-export function BlockEditor({ initialContent, onChange, getArticleId }: BlockEditorProps) {
-  const [text, setText] = useState<string>('')
-  const lastEmittedRef = useRef<string>('')
-
-  // Pretty-print the initial BlockNote JSON so the editor isn't a wall of
-  // single-line noise. Memoize so a re-render with the same content doesn't
-  // rewrite the textarea contents.
-  const pretty = useMemo(() => {
+/**
+ * Real BlockNote editor (replaces the JSON-textarea stub).
+ *
+ * Contract preserved for callers (`app/(admin)/articles/{new,[id]}/page.tsx`):
+ *  - `initialContent` is still a string (BlockNote JSON serialized)
+ *  - `onChange` receives the BlockNote JSON as a string (matches the
+ *    PATCH /api/articles/[id] body shape `blocknoteContent`)
+ *  - `getArticleId` is resolved once on mount so the lazy-draft-creation
+ *    machinery on the new-article page still gets its chance to fire before
+ *    the editor's autosave starts.
+ *
+ * BlockNote blocks covered by the stock schema: paragraph, heading,
+ * bullet/numbered list, check list, quote, code block, table, image, video,
+ * audio, file, divider. The legacy YouTube/Twitter embed blocks from
+ * `lib/mdx-convert.ts` aren't reproduced here for now -- paste the URL into
+ * a video block instead (TODO: add custom embed blocks once the converter
+ * is updated).
+ */
+export function BlockEditor({
+  initialContent,
+  articleId,
+  onChange,
+  getArticleId,
+}: BlockEditorProps) {
+  // Parse the incoming JSON-string into PartialBlock[] for BlockNote. The
+  // current pages always pass `[]` or a previously-serialized document; if
+  // the string is malformed (legacy content, user edited it directly), fall
+  // back to a single empty paragraph rather than throwing -- the autosave
+  // will still write a valid document on the first onChange.
+  const parsedInitialContent = useMemo(() => {
+    if (initialContent === undefined || initialContent === null || initialContent === '') {
+      return undefined
+    }
     try {
-      return JSON.stringify(JSON.parse(initialContent), null, 2)
+      const parsed = JSON.parse(initialContent)
+      if (Array.isArray(parsed)) return parsed
+      return undefined
     } catch {
-      return initialContent
+      return undefined
     }
   }, [initialContent])
 
-  useEffect(() => {
-    setText(pretty)
-    lastEmittedRef.current = pretty
-  }, [pretty])
+  const editor = useCreateBlockNote({
+    initialContent: parsedInitialContent,
+    // Wire BlockNote's image/file upload to our existing /api/media/upload.
+    // The function is invoked with the BlockNote-managed `blockId` so we
+    // can skip the createDraftIfNeeded race entirely when the page already
+    // has an articleId from `articleId` or `getArticleId()`.
+    uploadFile: async (file: File, blockId?: string) => {
+      const id = articleId ?? (getArticleId ? await getArticleId() : undefined)
+      if (!id) throw new Error('Article id unavailable for upload')
+      const media = await uploadMediaFile(id, file, file.name)
+      return getPublicMediaUrl(media.r2Key)
+    },
+  })
 
-  // `getArticleId` is invoked by the page before each autosave (see
-  // `app/articles/new/page.tsx`'s `createDraftIfNeeded`). We resolve it
-  // immediately so the existing race-handling ref on the new-article page
-  // keeps working; the value it returns is consumed by the page, not by us.
+  // Resolve the article id once on mount so the lazy-creation ref on the
+  // new-article page gets triggered the moment this component renders,
+  // instead of racing against the first onChange call.
+  const resolvedRef = useRef(false)
   useEffect(() => {
-    void getArticleId?.()
+    if (resolvedRef.current || !getArticleId) return
+    resolvedRef.current = true
+    void getArticleId()
   }, [getArticleId])
 
-  async function handleChange(next: string) {
-    setText(next)
-    if (next === lastEmittedRef.current) return
-    lastEmittedRef.current = next
-    let serialized: string
+  // Bridge: editor.document -> JSON string to keep the existing PATCH contract.
+  function handleChange() {
     try {
-      // If the user kept it valid JSON, re-serialize canonically so the
-      // PATCH payload matches what a real BlockNote would emit. Otherwise
-      // pass through raw — the onChange contract is "json string".
-      serialized = JSON.stringify(JSON.parse(next))
+      const json = JSON.stringify(editor.document)
+      void onChange?.(json)
     } catch {
-      serialized = next
+      // editor.document is always serializable in stock BlockNote; ignore
+      // any catastrophic failure rather than throwing during render.
     }
-    await onChange?.(serialized)
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs text-[var(--color-fg-subtle)]">
-        <span>Editor (BlockNote JSON — replace with rich editor in a follow-up)</span>
-        <span>autosave: on</span>
-      </div>
-      <textarea
-        value={text}
-        onChange={(e) => handleChange(e.target.value)}
-        spellCheck={false}
-        className="w-full min-h-[400px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-sm font-mono text-[var(--color-fg)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
-        style={{ fontFamily: 'var(--font-mono)' }}
-      />
+    <div className="bn-container">
+      <BlockNoteView editor={editor} onChange={handleChange} theme="light" />
     </div>
   )
 }
