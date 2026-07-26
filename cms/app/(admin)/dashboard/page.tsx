@@ -30,8 +30,13 @@ export default async function DashboardPage() {
   const draftCount = articles.filter((a) => a.status === 'draft').length
   const publishedCount = articles.filter((a) => a.status === 'published').length
 
+  // Single source of mock series so the KPI sparklines and the larger
+  // "page views" chart below share the same shape — they only differ
+  // in column/variant.
   const pageViewsSeries = buildMockSeries('pageviews-30d', 30, Math.max(1, pageViews30d ?? 0) / 30, 25)
   const subscriberSeries = buildMockSeries('subscribers-30d', 30, Math.max(1, subscriberCount ?? 0) / 30, 4)
+  const draftsSeries = buildMockSeries('drafts-30d', 30, Math.max(1, draftCount) / 30, 0.6)
+  const publishedSeries = buildMockSeries('published-30d', 30, Math.max(1, publishedCount) / 30, 0.6)
 
   return (
     <DashboardClient
@@ -46,6 +51,8 @@ export default async function DashboardPage() {
       events={events}
       pageViewsSeries={pageViewsSeries}
       subscriberSeries={subscriberSeries}
+      draftsSeries={draftsSeries}
+      publishedSeries={publishedSeries}
     />
   )
 }

@@ -39,11 +39,10 @@
   --radius-xl: 0.75rem;
   --radius-4xl: 2rem;
 
-  /* Card radius — larger than --radius-lg so Magic UI cards (MagicCard,
-   * BorderBeam wrappers, etc.) read as "soft panels" rather than sharp
-   * tiles. Touches that sit on the underlying token so changing the
-   * design system's radius cascade ripples out everywhere. */
-  --radius-card: 0.75rem;
+  /* Card radius — Stripe uses 8px, Vercel uses 6px. We're going with 8px
+   * because the editorial cards (KPI tiles, article rows) feel
+   * over-sharp at 6px. Pills stay fully rounded. */
+  --radius-card: 0.5rem;
   --radius-pill: 9999px;
 
   /* Magic UI shimmer/shine motion vars — overridden per-instance via
@@ -53,67 +52,66 @@
   --duration: 30s;
 }
 
-/* ----- Light theme (studio off-duty / daylight reading) ----- */
+/* ----- Light theme — Stripe-style neutral with electric blue accent. ----- */
 :root {
-  --color-bg: #F4EFE6;
-  --color-bg-secondary: #EBE4D5;
-  --color-bg-tertiary: #E0D7C4;
+  --color-bg: #F6F9FC;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #F0F3F7;
   --color-bg-elevated: #FFFFFF;
-  --color-bg-overlay: rgba(255, 255, 255, 0.85);
-  --color-fg: #1A1816;
-  --color-fg-muted: #5C564C;
-  --color-fg-subtle: #807868;
-  --color-border: #D8CEB4;
-  --color-border-strong: #C2B598;
-  /* VU-meter amber. Replaces the default red so the only color that "lights
-   * up" reads as a signal — not a brand mark. Used sparingly: active nav,
-   * save-state, focus rings, publish button. */
-  --color-accent: #B6791F;
-  --color-accent-hover: #985F12;
-  --color-glow: rgba(182, 121, 31, 0.18);
-  --color-positive: #4F7A35;
-  --color-negative: #B54327;
-  --color-warning: #C77B0F;
+  --color-bg-overlay: rgba(246, 249, 252, 0.85);
+  --color-fg: #0A2540;
+  --color-fg-muted: #425466;
+  --color-fg-subtle: #697386;
+  --color-border: #E6EBF1;
+  --color-border-strong: #CBD2D9;
+  /* Electric blue — Stripe's signature. The only color that "lights up" in
+   * the system: active nav, primary actions, focus rings. */
+  --color-accent: #635BFF;
+  --color-accent-hover: #5851DB;
+  --color-glow: rgba(99, 91, 255, 0.20);
+  --color-positive: #0BA47B;
+  --color-negative: #E25950;
+  --color-warning: #F5A623;
 }
 
-/* ----- Warm dark (studio on, default CMS mode) ----- */
+/* ----- Dark (default CMS mode) — Vercel/Stripe hairline-on-near-black. ----- */
 .dark {
-  --color-bg: #1A1816;
-  --color-bg-secondary: #252220;
-  --color-bg-tertiary: #2E2A26;
-  --color-bg-elevated: #332F2C;
-  --color-bg-overlay: rgba(26, 24, 22, 0.85);
-  --color-fg: #F2EDE5;
-  --color-fg-muted: #B0A693;
-  --color-fg-subtle: #807868;
-  --color-border: #3A3530;
-  --color-border-strong: #4A443E;
-  --color-accent: #E8A33D;
-  --color-accent-hover: #F2B652;
-  --color-glow: rgba(232, 163, 61, 0.22);
-  --color-positive: #7FB069;
-  --color-negative: #E07856;
-  --color-warning: #E8A33D;
+  --color-bg: #0A0E1A;
+  --color-bg-secondary: #0F1420;
+  --color-bg-tertiary: #161C2C;
+  --color-bg-elevated: #1C2235;
+  --color-bg-overlay: rgba(10, 14, 26, 0.85);
+  --color-fg: #E6EAF0;
+  --color-fg-muted: #A1A8B8;
+  --color-fg-subtle: #6B7388;
+  --color-border: #1F2638;
+  --color-border-strong: #2A3247;
+  --color-accent: #7C75FF;
+  --color-accent-hover: #9C97FF;
+  --color-glow: rgba(124, 117, 255, 0.25);
+  --color-positive: #3DDC97;
+  --color-negative: #FF6B6B;
+  --color-warning: #FFB547;
 }
 
-/* ----- OLED dark (deep night booth) ----- */
+/* ----- OLED deep — true black for editors who want the canvas to vanish. ----- */
 .dark.oled {
   --color-bg: #000000;
-  --color-bg-secondary: #0A0908;
-  --color-bg-tertiary: #050403;
-  --color-bg-elevated: #141210;
-  --color-bg-overlay: rgba(10, 9, 8, 0.85);
-  --color-fg: #F2EDE5;
-  --color-fg-muted: #8A8F98;
-  --color-fg-subtle: #5C6068;
-  --color-border: #1F1C18;
-  --color-border-strong: #2A2620;
-  --color-accent: #F2B652;
-  --color-accent-hover: #FFD27A;
-  --color-glow: rgba(242, 182, 82, 0.28);
-  --color-positive: #7FB069;
-  --color-negative: #E07856;
-  --color-warning: #F2B652;
+  --color-bg-secondary: #07080C;
+  --color-bg-tertiary: #0E1018;
+  --color-bg-elevated: #161922;
+  --color-bg-overlay: rgba(0, 0, 0, 0.92);
+  --color-fg: #E6EAF0;
+  --color-fg-muted: #8C93A4;
+  --color-fg-subtle: #5C6276;
+  --color-border: #181C28;
+  --color-border-strong: #232838;
+  --color-accent: #8A85FF;
+  --color-accent-hover: #A8A4FF;
+  --color-glow: rgba(138, 133, 255, 0.30);
+  --color-positive: #3DDC97;
+  --color-negative: #FF6B6B;
+  --color-warning: #FFB547;
 }
 
 /* shadcn / @base-ui neutral aliases — map onto Mavora tokens */
@@ -148,32 +146,13 @@
     color: var(--color-fg);
     font-family: var(--font-sans);
     position: relative;
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.015 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-    z-index: 0;
-  }
-  /* OLED-only ambient accent glow at the top of the viewport (cinema-
-   * mobile style). Pinned under the noise layer, above the body bg, so it
-   * stays subtle enough to read as ambient, not chrome. */
-  .dark.oled body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(60rem 30rem at 50% -10%, var(--color-glow), transparent 60%),
-      radial-gradient(40rem 25rem at 100% 20%, var(--color-glow), transparent 70%);
-    opacity: 0.6;
-    z-index: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    font-weight: 600;
   }
   code, kbd, samp, pre {
     font-family: var(--font-mono);

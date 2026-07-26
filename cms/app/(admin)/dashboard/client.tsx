@@ -14,9 +14,10 @@ import { cn } from '@/lib/utils'
 interface KpiTile {
   title: string
   value: number
-  /** 0–1 normalized "VU level". Drives the bottom bar's fill width. */
-  level: number
-  delta?: { sign: 'up' | 'down' | 'flat'; label: string }
+  /** Sparkline data, length should match the visible window (14-30 points). */
+  series: SeriesPoint[]
+  /** Short trend label that shows above the big number, e.g. "▲ 12%". */
+  trend?: { sign: 'up' | 'down' | 'flat'; label: string }
   icon: React.ReactNode
 }
 
@@ -37,6 +38,8 @@ interface DashboardClientProps {
   events: AuditEvent[]
   pageViewsSeries: SeriesPoint[]
   subscriberSeries: SeriesPoint[]
+  draftsSeries: SeriesPoint[]
+  publishedSeries: SeriesPoint[]
 }
 
 function formatBytes(bytes: number): { value: number; unit: string } {
@@ -55,6 +58,24 @@ function clamp01(n: number): number {
   return Math.min(1, Math.max(0, n))
 }
 
+/**
+ * Computes a +X% / -X% trend from a 30d series by comparing the first
+ * half to the second half. Returns a flat label if the series is empty
+ * or has a near-zero change (< 2%). Used by KPI tiles.
+ */
+function deriveTrend(series: SeriesPoint[]): { sign: 'up' | 'down' | 'flat'; label: string } {
+  if (series.length < 4) return { sign: 'flat', label: '—' }
+  const mid = Math.floor(series.length / 2)
+  const first = series.slice(0, mid).reduce((sum, p) => sum + p.value, 0) / mid
+  const second = series.slice(mid).reduce((sum, p) => sum + p.value, 0) / (series.length - mid)
+  if (first <= 0) return { sign: 'flat', label: '—' }
+  const pct = ((second - first) / first) * 100
+  if (Math.abs(pct) < 2) return { sign: 'flat', label: '0%' }
+  const sign = pct > 0 ? 'up' : 'down'
+  const label = `${pct > 0 ? '+' : ''}${pct.toFixed(0)}%`
+  return { sign, label }
+}
+
 function ActionIcon({ action }: { action: string }) {
   if (action === 'create') return <Doc className="size-4" />
   if (action === 'update') return <Activity className="size-4" />
@@ -67,20 +88,38 @@ export function DashboardClient(props: DashboardClientProps) {
   const storagePct = pct(props.r2UsedBytes, props.r2FreeTierBytes)
 
   const kpis: KpiTile[] = [
-    { title: 'Drafts', value: props.draftCount, level: clamp01(props.draftCount / 10), icon: <Doc className="size-5" /> },
-    { title: 'Published', value: props.publishedCount, level: clamp01(props.publishedCount / 50), icon: <Activity className="size-5" /> },
+    {
+      title: 'Drafts',
+      value: props.draftCount,
+      series: props.draftsSeries,
+      trend: deriveTrend(props.draftsSeries),
+      icon: <Doc className="size-5" />,
+    },
+    {
+      title: 'Published',
+      value: props.publishedCount,
+      series: props.publishedSeries,
+      trend: deriveTrend(props.publishedSeries),
+      icon: <Activity className="size-5" />,
+    },
     {
       title: 'Subscribers',
       value: props.subscriberCount ?? 0,
-      level: clamp01((props.subscriberCount ?? 0) / 1000),
-      delta: props.subscriberCount === null ? { sign: 'flat', label: 'Not configured' } : undefined,
+      series: props.subscriberSeries,
+      trend:
+        props.subscriberCount === null
+          ? { sign: 'flat', label: 'Not configured' }
+          : deriveTrend(props.subscriberSeries),
       icon: <Folder className="size-5" />,
     },
     {
       title: 'Page views (30d)',
       value: props.pageViews30d ?? 0,
-      level: clamp01((props.pageViews30d ?? 0) / 5000),
-      delta: props.pageViews30d === null ? { sign: 'flat', label: 'Not configured' } : undefined,
+      series: props.pageViewsSeries,
+      trend:
+        props.pageViews30d === null
+          ? { sign: 'flat', label: 'Not configured' }
+          : deriveTrend(props.pageViewsSeries),
       icon: <Calendar className="size-5" />,
     },
   ]
@@ -119,54 +158,60 @@ export function DashboardClient(props: DashboardClientProps) {
         </div>
       </div>
 
-      {/* KPI row — VU meters */}
+      {/* KPI row — Stripe-style cards with inline sparkline + trend */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
           <div
             key={kpi.title}
-            className="relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5"
+            className="relative overflow-hidden rounded-lg border bg-[var(--color-bg-secondary)] p-5"
+            style={{ borderColor: 'var(--color-border)' }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-fg-muted)]">
                 {kpi.title}
               </span>
-              <span className="text-[var(--color-fg-muted)]">{kpi.icon}</span>
+              <span className="text-[var(--color-fg-subtle)]">{kpi.icon}</span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
               <span
-                className="text-3xl font-bold tabular-nums"
+                className="text-3xl font-semibold tabular-nums text-[var(--color-fg)]"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
                 <NumberTicker value={kpi.value} className="!text-[var(--color-fg)]" />
               </span>
-              {kpi.delta && (
+              {kpi.trend && (
                 <span
                   className={cn(
-                    'text-[10px] uppercase tracking-[0.14em]',
-                    kpi.delta.sign === 'up' && 'text-[var(--color-positive)]',
-                    kpi.delta.sign === 'down' && 'text-[var(--color-negative)]',
-                    kpi.delta.sign === 'flat' && 'text-[var(--color-fg-subtle)]'
+                    'text-[11px] font-medium tabular-nums',
+                    kpi.trend.sign === 'up' && 'text-[var(--color-positive)]',
+                    kpi.trend.sign === 'down' && 'text-[var(--color-negative)]',
+                    kpi.trend.sign === 'flat' && 'text-[var(--color-fg-subtle)]'
                   )}
                 >
-                  {kpi.delta.label}
+                  {kpi.trend.sign === 'up' ? '↑ ' : kpi.trend.sign === 'down' ? '↓ ' : '— '}
+                  {kpi.trend.label}
                 </span>
               )}
             </div>
-            {/* VU bar — two layers: track at 6% opacity, fill on top with a
-             * 1px amber hairline. The fill width tracks `kpi.level` so the
-             * dashboard reads as four faders rising and falling. */}
-            <div
-              className="mt-5 h-1 rounded-full overflow-hidden"
-              style={{ backgroundColor: 'var(--color-border)' }}
-              aria-hidden
-            >
-              <div
-                className="h-full rounded-full transition-[width] duration-700"
-                style={{
-                  width: `${kpi.level * 100}%`,
-                  background: 'linear-gradient(90deg, var(--color-accent-hover), var(--color-accent))',
-                }}
-              />
+            <div className="mt-4 h-12 -mx-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={kpi.series}>
+                  <defs>
+                    <linearGradient id={`spark-${kpi.title.replace(/\W/g, '')}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="var(--color-accent)"
+                    strokeWidth={1.5}
+                    fill={`url(#spark-${kpi.title.replace(/\W/g, '')})`}
+                    isAnimationActive={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         ))}

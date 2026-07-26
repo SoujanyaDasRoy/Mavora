@@ -83,7 +83,10 @@ export default async function ArticlesListPage() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+          <h1
+            className="text-3xl font-semibold tracking-tight"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
             Articles
           </h1>
           <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
@@ -130,13 +133,24 @@ export default async function ArticlesListPage() {
         </MagicCard>
       )}
 
-      {/* Table */}
+      {/* Table — dense, Stripe-style. No MagicCard glow, no rounded-xl —
+       * flat surface, tight rows, sticky header, hover rail. */}
       {articles.length > 0 && (
         <div
-          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden"
-          style={{ boxShadow: '0 1px 0 var(--color-border)' }}
+          className="rounded-lg border overflow-hidden"
+          style={{
+            backgroundColor: 'var(--color-bg-secondary)',
+            borderColor: 'var(--color-border)',
+          }}
         >
-          <div className="grid grid-cols-12 gap-4 px-5 py-3 text-xs uppercase tracking-wider text-[var(--color-fg-subtle)] border-b border-[var(--color-border)]">
+          <div
+            className="sticky top-14 z-10 grid grid-cols-12 gap-4 px-5 py-2.5 text-[10px] font-semibold uppercase tracking-wider border-b"
+            style={{
+              backgroundColor: 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-fg-subtle)',
+            }}
+          >
             <div className="col-span-6">Title</div>
             <div className="col-span-2">Pillar</div>
             <div className="col-span-1">Status</div>
@@ -144,7 +158,7 @@ export default async function ArticlesListPage() {
             <div className="col-span-1 text-right">Updated</div>
           </div>
 
-          <ul className="divide-y divide-[var(--color-border)]">
+          <ul className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
             {articles.map((article) => {
               const pillar = PILLAR_STYLES[article.pillar]
               const status = STATUS_STYLES[article.status]
@@ -152,14 +166,22 @@ export default async function ArticlesListPage() {
                 article.authorName ?? (article.authorId && authorNames[article.authorId]) ?? 'Unknown'
 
               return (
-                <li key={article.id}>
+                <li key={article.id} className="group relative">
                   <Link
                     href={`/articles/${article.id}`}
-                    className="group grid grid-cols-12 gap-4 px-5 py-4 items-center hover:bg-[var(--color-bg-tertiary)] transition-colors"
+                    className="grid grid-cols-12 gap-4 px-5 py-2.5 items-center text-sm transition-colors hover:bg-[var(--color-bg-tertiary)]"
                   >
+                    {/* Active rail — appears on hover, accent on the left
+                     * edge. Mirrors the sidebar's active treatment so the
+                     * whole app shares one "what is selected" gesture. */}
+                    <span
+                      aria-hidden
+                      className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-r-full opacity-0 transition-opacity group-hover:opacity-100"
+                      style={{ backgroundColor: 'var(--color-accent)' }}
+                    />
                     <div className="col-span-6 min-w-0">
                       <p className="font-medium text-[var(--color-fg)] truncate">{article.title}</p>
-                      <p className="text-xs text-[var(--color-fg-subtle)] mt-0.5 truncate">/{article.slug}</p>
+                      <p className="text-[11px] text-[var(--color-fg-subtle)] mt-0.5 truncate">/{article.slug}</p>
                     </div>
                     <div className="col-span-2">
                       <Badge
@@ -175,9 +197,7 @@ export default async function ArticlesListPage() {
                     </div>
                     <div className="col-span-1">
                       <span
-                        className={cn(
-                          'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium',
-                        )}
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium"
                         style={{ backgroundColor: status.bg, color: status.fg }}
                       >
                         <span
@@ -188,10 +208,10 @@ export default async function ArticlesListPage() {
                         {article.status}
                       </span>
                     </div>
-                    <div className="col-span-2 text-sm text-[var(--color-fg-muted)] truncate">
+                    <div className="col-span-2 text-[var(--color-fg-muted)] truncate">
                       {authorName}
                     </div>
-                    <div className="col-span-1 text-right text-xs text-[var(--color-fg-subtle)] flex items-center justify-end gap-1">
+                    <div className="col-span-1 text-right text-[11px] text-[var(--color-fg-subtle)] flex items-center justify-end gap-1 tabular-nums">
                       <Time className="size-3" />
                       <span>{formatUpdated(article.updatedAt)}</span>
                     </div>
@@ -205,7 +225,7 @@ export default async function ArticlesListPage() {
 
       {/* Footer hint */}
       {articles.length > 0 && (
-        <p className="text-xs text-[var(--color-fg-subtle)] text-center">
+        <p className="text-[11px] text-[var(--color-fg-subtle)] text-center">
           Click any row to edit · <ArrowRight className="inline size-3" />
         </p>
       )}

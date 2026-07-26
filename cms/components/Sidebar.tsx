@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -10,6 +10,8 @@ import {
   Group,
   Settings,
   Menu,
+  SidePanelClose,
+  SidePanelOpen,
 } from '@carbon/icons-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -33,9 +35,21 @@ const ITEMS: SidebarItem[] = [
   { label: 'Settings', href: '/settings', icon: <Settings className="size-5" /> },
 ]
 
-function Nav({ role, pathname, onNavigate }: { role: Role; pathname: string; onNavigate?: () => void }) {
+const STORAGE_KEY = 'cms-sidebar-collapsed'
+
+function Nav({
+  role,
+  pathname,
+  collapsed,
+  onNavigate,
+}: {
+  role: Role
+  pathname: string
+  collapsed: boolean
+  onNavigate?: () => void
+}) {
   return (
-    <nav className="flex flex-col gap-0.5 px-3 py-4">
+    <nav className="flex flex-col gap-1 px-2 py-3">
       {ITEMS.filter((item) => !item.roles || item.roles.includes(role)).map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
         return (
@@ -43,31 +57,33 @@ function Nav({ role, pathname, onNavigate }: { role: Role; pathname: string; onN
             key={item.href}
             href={item.href}
             onClick={onNavigate}
+            title={collapsed ? item.label : undefined}
+            aria-label={item.label}
             className={cn(
-              'group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              'group relative flex items-center gap-3 rounded-md text-sm font-medium transition-colors',
+              collapsed ? 'h-10 justify-center px-0' : 'px-3 py-2',
               active
                 ? 'bg-[var(--color-bg-tertiary)] text-[var(--color-fg)]'
                 : 'text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-fg)]'
             )}
           >
-            {/* Active rail — a single 2px amber tick on the left edge. The
-             * only place the accent color appears in the sidebar; everything
-             * else stays monochrome so the active state reads instantly. */}
             {active && (
               <span
                 aria-hidden
-                className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-[var(--color-accent)]"
+                className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-[var(--color-accent)]"
               />
             )}
             <span
               className={cn(
                 'flex items-center justify-center transition-colors',
-                active ? 'text-[var(--color-accent)]' : 'text-[var(--color-fg-subtle)] group-hover:text-[var(--color-fg)]'
+                active
+                  ? 'text-[var(--color-accent)]'
+                  : 'text-[var(--color-fg-subtle)] group-hover:text-[var(--color-fg)]'
               )}
             >
               {item.icon}
             </span>
-            {item.label}
+            {!collapsed && <span className="truncate">{item.label}</span>}
           </Link>
         )
       })}
@@ -76,38 +92,98 @@ function Nav({ role, pathname, onNavigate }: { role: Role; pathname: string; onN
 }
 
 /**
- * Wordmark, not a logo image. The display serif (Newsreader) gives the
- * sidebar a publishing imprint rather than a SaaS look. Sits inside its
- * own recessed plate so the wordmark reads as a masthead, not a label.
+ * Collapsed/expanded brand mark. When collapsed, shows just an "M" tile
+ * (rounded square, accent on hover). When expanded, shows "Mavora" + role.
  */
-function BrandBlock() {
+function BrandBlock({ collapsed }: { collapsed: boolean }) {
+  if (collapsed) {
+    return (
+      <Link
+        href="/dashboard"
+        aria-label="Mavora dashboard"
+        className="flex items-center justify-center py-4"
+      >
+        <span
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors"
+          style={{
+            backgroundColor: 'var(--color-bg-tertiary)',
+            color: 'var(--color-fg)',
+          }}
+        >
+          M
+        </span>
+      </Link>
+    )
+  }
   return (
     <Link
       href="/dashboard"
-      className="flex items-center gap-2.5 px-5 py-5 group"
+      className="flex items-center gap-2.5 px-4 py-4"
       style={{ fontFamily: 'var(--font-display)' }}
     >
-      <span className="relative inline-block size-2 rounded-full bg-[var(--color-accent)] vu-dot" aria-hidden />
-      <span className="text-xl font-medium tracking-tight text-[var(--color-fg)]">
-        Mavora
+      <span
+        className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-semibold"
+        style={{
+          background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))',
+          color: '#fff',
+        }}
+      >
+        M
       </span>
-      <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-fg-subtle)] ml-auto">
-        CMS
+      <span className="flex flex-col leading-tight">
+        <span className="text-sm font-semibold tracking-tight text-[var(--color-fg)]">Mavora</span>
+        <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+          Editorial CMS
+        </span>
       </span>
     </Link>
   )
 }
 
+/**
+ * Collapsible sidebar. Two states: collapsed (64px icon rail, Stripe-style)
+ * and expanded (240px with labels). Persists preference to localStorage.
+ * The shell queries `useSidebarState()` for the live value so it can
+ * offset the content area by the right margin.
+ */
 export function Sidebar({ role }: { role: Role }) {
   const pathname = usePathname() ?? ''
+  const [collapsed, setCollapsed] = useState(false)
+
+  // Read persisted preference once on mount. The default is expanded
+  // (matches the desktop SaaS norm); mobile always uses the Sheet
+  // variant instead.
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored === '1') setCollapsed(true)
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  function toggle() {
+    setCollapsed((prev) => {
+      const next = !prev
+      try {
+        localStorage.setItem(STORAGE_KEY, next ? '1' : '0')
+      } catch {
+        // ignore
+      }
+      return next
+    })
+  }
+
+  const width = collapsed ? 'md:w-16' : 'md:w-60'
 
   return (
     <aside
-      className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-30"
+      className={cn(
+        'hidden md:flex md:flex-col md:fixed md:inset-y-0 z-30 transition-[width] duration-200',
+        width
+      )}
       style={{
-        // Recessed — one step darker than the page so the sidebar reads as
-        // a tray the workspace sits inside, not a panel.
-        backgroundColor: 'var(--color-bg)',
+        backgroundColor: 'var(--color-bg-secondary)',
         borderColor: 'var(--color-border)',
       }}
     >
@@ -118,24 +194,52 @@ export function Sidebar({ role }: { role: Role }) {
           borderColor: 'var(--color-border)',
         }}
       >
-        <BrandBlock />
+        <BrandBlock collapsed={collapsed} />
       </div>
       <ScrollArea className="flex-1">
-        <Nav role={role} pathname={pathname} />
+        <Nav role={role} pathname={pathname} collapsed={collapsed} />
       </ScrollArea>
       <div
-        className="flex items-center justify-between border-t px-5 py-3 text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]"
+        className={cn(
+          'flex items-center border-t',
+          collapsed ? 'justify-center px-0 py-3' : 'justify-between px-4 py-3',
+        )}
         style={{
           backgroundColor: 'var(--color-bg-secondary)',
           borderColor: 'var(--color-border)',
-          fontFamily: 'var(--font-mono)',
         }}
       >
-        <span>v0.1 · {role}</span>
-        <span className="flex items-center gap-1.5">
-          <span className="relative inline-block size-1.5 rounded-full bg-[var(--color-positive)]" aria-hidden />
-          <span>Online</span>
-        </span>
+        {collapsed ? (
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label="Expand sidebar"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-fg)]"
+          >
+            <SidePanelOpen className="size-4" />
+          </button>
+        ) : (
+          <>
+            <span
+              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]"
+              style={{ fontFamily: 'var(--font-mono)' }}
+            >
+              <span
+                className="relative inline-block size-1.5 rounded-full bg-[var(--color-positive)]"
+                aria-hidden
+              />
+              <span>Online</span>
+            </span>
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label="Collapse sidebar"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-fg)]"
+            >
+              <SidePanelClose className="size-4" />
+            </button>
+          </>
+        )}
       </div>
     </aside>
   )
@@ -163,10 +267,10 @@ export function MobileSidebar({ role }: { role: Role }) {
         className="p-0 w-64"
         style={{ backgroundColor: 'var(--color-bg-secondary)' }}
       >
-        <BrandBlock />
+        <BrandBlock collapsed={false} />
         <Separator />
         <ScrollArea className="h-[calc(100vh-8rem)]">
-          <Nav role={role} pathname={pathname} onNavigate={() => setOpen(false)} />
+          <Nav role={role} pathname={pathname} collapsed={false} onNavigate={() => setOpen(false)} />
         </ScrollArea>
       </SheetContent>
     </Sheet>

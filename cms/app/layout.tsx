@@ -1,33 +1,30 @@
 import type { Metadata } from "next";
-import { Newsreader, Inter, JetBrains_Mono, Outfit } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-// Newsreader — a transitional serif designed for long-read body text.
-// Chosen as the display face because it carries editorial weight without
-// slipping into "AI-default cream + serif + terracotta" territory (the
-// skill called that look out by name). It's also a Google-hosted variable
-// font, so weights 200–800 are all served from one file.
-const fontDisplay = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-});
-const fontSans = Inter({
+// Geist — Vercel's modern geometric sans, used as the display face for
+// the Stripe/Vercel aesthetic. Tight tracking, even strokes, high
+// legibility at small sizes (sidebar labels, table headers).
+const fontSans = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
-const fontMono = JetBrains_Mono({
+const fontDisplay = Geist({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   display: "swap",
 });
-const fontArticle = Outfit({
+const fontArticle = Inter({
   subsets: ["latin"],
   variable: "--font-article",
   display: "swap",
