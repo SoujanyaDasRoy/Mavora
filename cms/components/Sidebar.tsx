@@ -68,23 +68,13 @@ function Nav({ role, pathname, onNavigate }: { role: Role; pathname: string; onN
 
 function BrandBlock() {
   return (
-    <div className="flex items-center gap-3 px-5 py-5">
-      <div
-        className="size-9 rounded-md flex items-center justify-center text-sm font-bold"
-        style={{
-          background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%)',
-          color: '#fff',
-        }}
-      >
-        M
-      </div>
-      <div>
-        <div className="text-sm font-semibold tracking-wide" style={{ fontFamily: 'var(--font-display)' }}>
-          Mavora
-        </div>
-        <div className="text-xs text-[var(--color-fg-subtle)]">Editorial CMS</div>
-      </div>
-    </div>
+    <Link href="/dashboard" className="flex items-center px-5 py-4 group">
+      <img
+        src="/logo.png"
+        alt="Mavora Logo"
+        className="h-8 w-auto object-contain transition-opacity duration-200 group-hover:opacity-90"
+      />
+    </Link>
   )
 }
 
